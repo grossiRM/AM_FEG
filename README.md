@@ -3,7 +3,7 @@
 -	ligas 316L e                                <br>
 -	Inconel 625, além de um material com        <br>
 -	gradiente composicional 316L/625,           <br>
--		por DED-Arc.                            
+-	por DED-Arc.                                <br>
 
 ### Simular o processo, determinando os ciclos térmicos 
 ### (mapa: taxa de aquecimento, resfriamento, focos de temperatura, etc) 
@@ -19,6 +19,3 @@ git commit -m "01"    <br>
 git push origin       <br>
 
 
-```bash
-https://grossirm.github.io/
-```
