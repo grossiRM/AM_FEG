@@ -3,7 +3,7 @@
 -	ligas 316L e                                <br>
 -	Inconel 625, além de um material com        <br>
 -	gradiente composicional 316L/625,           <br>
--		por DED-Arc.                            <br>
+-		por DED-Arc.                            
 
 ### Simular o processo, determinando os ciclos térmicos 
 ### (mapa: taxa de aquecimento, resfriamento, focos de temperatura, etc) 
@@ -13,3 +13,7 @@
 - Ansys     <br>
 - PravaH®   <br>
  
+## GIT
+git add .             <br>
+git commit -m "01"    <br>
+git push origin       <br>
