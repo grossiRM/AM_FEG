@@ -1,0 +1,10 @@
+VAM - Volumetric Additive Manufacturing 
+
+https://www.youtube.com/live/J4ieku-yXrY
+https://www.youtube.com/playlist?list=PLqm5VAJ6kEcNbfYFqxerPYo54j-nLKCFE
+https://www.youtube.com/playlist?list=PLqm5VAJ6kEcOnhGP_k1CuorwdzqheGVPy
+https://www.youtube.com/playlist?list=PLqm5VAJ6kEcPgUfgrcr6dSk7eNskPl8u0
+
+Melt Pool Tracking:		sharper, more reliable surface tension and mass transport calculation
+
+https://www.cfdem.com/lattice-boltzmann-cfd
