@@ -1,0 +1,20 @@
+FoamBO
+
+https://staff.polito.it/michele.ferlauto/heat0.html
+
+https://github.com/FoamScience/bayesian-optimization-for-combustion/blob/main/presentation/slides.md
+
+https://github.com/FoamScience/OpenFOAM-Multi-Objective-Optimization?tab=readme-ov-file
+
+
+
+https://staff.polito.it/michele.ferlauto/inverso.html			https://staff.polito.it/michele.ferlauto/publications.html
+https://www.researchgate.net/profile/Michele-Ferlauto-2			https://github.com/293459/SP/tree/main	GIT
+
+https://webthesis.biblio.polito.it/view/relators/Ferlauto=3AMichele=3A=3A.html		Michele Ferlauto	
+
+
+adjoint method
+
+http://ftp.demec.ufpr.br/CFD/		Prof. Carlos Henrique Marchi 	marchi@demec.ufpr.br
+https://www.linkedin.com/pulse/mf-pest-trough-despair-isto-mesmo-o-cocho-do-rodrigo-m-grossi-spzuf/		SAME_RMG

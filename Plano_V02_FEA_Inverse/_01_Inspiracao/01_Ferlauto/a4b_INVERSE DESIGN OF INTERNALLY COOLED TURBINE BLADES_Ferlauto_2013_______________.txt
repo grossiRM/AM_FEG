@@ -1,0 +1,17 @@
+adjoint methods for 2D/3D problems [9, 17, 18],
+
+adjoint optimization and follows the footsteps of a technique of aerodynamic design [11],[12].
+	differs from previous adjoint approaches (e.g.see [9, 18]).
+
+
+[9] Huang, C. H., Hsiung, T. Y., 		An Inverse Design Problem of Estimating Optimal Shape of Cooling Passages in Turbine Blades	, Int. J. of Heat and Mass Transfer, Vol. 42, 1999, pp. 4307-4319.
+	[10] Dulikravich, G. S., Martin, T.J., 	Inverse Design of Super-elliptic Cooling Passages in Coated Turbine Blades		, Int. J. of Thermophysics and Heat Transfer, Vol. 8(2), 1994, pp. 288-94.
+[11] Iollo, A., Ferlauto, M., Zannetti, L., 	An aerodynamic optimization method based on the inverse problem adjoint equations	. J. Computational Physics, 173:87–115, 2001.
+[12] Ferlauto, M., Iollo, A., Zannetti, L., 	Set of Boundary Conditions for Aerodynamic Design AIAA 	*		  		  J.,Vol. 42, No. 8, pp 1582–92, 2004.
+[17] Huang C. H., Chen, C. W., 			A boundary element based inverse-problem in estimating transient boundary conditions with conjugate gradient method, 	Int. J. Numer. Methods Engineering. 42 943–65,1998.
+[18] Huang, C. H., Wang, S. P., 		A three-dimensional inverse heat conduction problem in estimating surface heat flux by conjugate gradient method 	Int. J. Heat Mass Transfer 42 ,1999.
+
+[21] Lewis, R. W. , Nithiarasu, P., Seetharamu, K. N., 		Fundamentals of the Finite Element Method for Heat and Fluid Flow *	, John Wiley & Sons Ltd,London, 2004.
+
+
+the shape function matrix

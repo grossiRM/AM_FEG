@@ -1,0 +1,5 @@
+https://modflow6-examples.readthedocs.io/en/latest/_examples/ex-gwt-henry.html
+https://modflow6-examples.readthedocs.io/en/latest/_notebooks/ex-gwt-henry.html
+https://flopy.readthedocs.io/en/3.3.5/_notebooks/tutorial01_seawat.html
+
+https://github.com/gmdsi/GMDSI_notebooks/blob/03293cfb7eac3d3b3f3335f702922cefabbc1495/tutorials/part2_09_mou/freyberg_mou_1.ipynb#L7
