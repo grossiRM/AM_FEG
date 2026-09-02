@@ -1,0 +1,10 @@
+Correspondence to Petros Koumoutsakos or Costas P. Grigoropoulos.		petros@seas.harvard.edu		cgrigoro@berkeley.edu
+
+https://additiveanalytics.co.uk/publications
+
+CFD simulations were performed using the incompressible Navier–Stokes solver ((in Basilisk 39 with Brinkman penalization 40)) .. 
+..	and adaptive mesh refinement (AMR) to resolve fluid forces, wake dynamics, and vortex shedding around the lattice structures.
+
+MOBO
+
+https://github.com/ansys/pyansys	https://github.com/cselab/sponge		https://basilisk.fr/Tutorial

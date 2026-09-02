@@ -1,0 +1,9 @@
+
+	Heterogeneous mechanical metamaterials: design paradigms, additive manufacturing, and emergent multifunctionality
+	Influence of Heterogeneity on the Response of Architected Metamaterials
+
+	Topology optimization of anisotropic metamaterials tracing the target EFC and field polarization
+	Transient computational homogenization for heterogeneous materials under dynamic excitation
+
+
+2.6. Data-driven metamaterial design

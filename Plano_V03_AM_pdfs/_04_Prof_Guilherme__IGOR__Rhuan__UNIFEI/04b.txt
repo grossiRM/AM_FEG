@@ -1,0 +1,22 @@
+Toward Enhanced Mechanical Rigidity: Additive Manufacturing of Auxetic Tubes with PU Core and Comparative Analysis of Unique Structural Behaviors
+A Multiobjective Optmization Parameters Applied to Additive Manufacturing: Doe-Based Approach to 3D Printing
+Monografia Graduação Estudo acerca de estruturas auxeticas preenchidas com espuma
+Estudo acerca de estruturas auxéticas preenchidas com espuma 
+Rhuan José Ribeiro Pereira, 		Rafael Augusto Gomes
+
+
+
+A multiobjective optimization parameters applied to additive manufacturing: DOE-based approach to 3D printing
+Rhuan José Ribeiro Pereira 		Fabricio Alves de Almeida 		Guilherme Ferreira Gomes a
+
+
+
+Enhanced Lichtenberg algorithm: a discussion on improving meta-heuristics
+
+OTIMIZAÇÃO DOS PARÂMENTROS DO PROCESSO DE MANUFATURA ADITIVA	_____________________ ok
+ANOVA			análise 
+TOPSIS			Technique for Order of Preference by Similarity to IdealSolution
+gráficos de Pareto
+Matriz de correlação
+
+

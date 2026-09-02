@@ -1,0 +1,20 @@
+PDF_09_Guilherme
+
+*	Integrated machine learning and finite element analysis for rail-wheel wear evaluation based on stress and contact mechanics Kouider Bendine1 	Prof. Guilherme · David Gimeno
+*	Hybridization of generative design and TPMS lattices: A statistical approach for lightweight aeronautical components 				Igor & Guilherme 
+	OTIMIZAÇÃO DOS PARÂMENTROS DO PROCESSO DE MANUFATURA ADITIVA 											Rhuan , Prof. 	Prof. Guilherme 
+	DEVELOPMENT OF A MULTI-OBJECTIVE OPTIMIZATION ALGORITHM BASED ON LICHTENBERG FIGURES 								JOÃO LUIZ JUNHO PEREIRA
+
+	How to Visualize Computational Mechanics: Animating Finite Elements, Continuum Mechanics, and Tensor Calculus					Moritz Flaschel		_____ n_____
+	A multiobjective optimization parameters applied to additive manufacturing: DOE-based approach to 3D printing
+	Toward enhanced mechanical rigidity: additive manufacturing of auxetic tubes with PU core and comparative analysis of unique structural behaviors
+	Forward and Inverse Problems in Piezoelectricity 												Den Naturwissenschaftlichen Fakultäten
+
+	Integrated machine learning and finite element analysis for rail-wheel wear evaluation based on stress and contact mechanics 			Kouider · Prof. Guilherme · David Alegre Gimeno3
+06a Uncertainty-Aware Design of Dynamic Metamaterials
+06b	Multi-Region Matrix Interpolation for Dynamic Analysis of Aperiodic Structures under Large Model Parameter Perturbations 			J. Pereiraa, R. O. Ruiz 1a
+06c	Improved model reduction with basis enrichment for dynamic analysis of nearly periodic structures including 					Jean-Mathieu Mencik
+06d	Model reduction based on matrix interpolation
+06e	Coupling of Substructures for Dynamic Analyses
+
+07	Neural operators solve inverse problems for constitutive model discovery					Moritz Flaschela,∗, Burigede Liub, Ellen Kuhla,

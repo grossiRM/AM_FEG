@@ -1,0 +1,7 @@
+06a
+Mencik in [10] and further elaborated in [11]
+Model reduction based on matrix interpolation and distorted finite element meshes for dynamic analysis of 2d nearly periodic structures
+Improved model reduction with basis enrichment for dynamic analysis of nearly periodic structures including substructures with geometric changes
+
+06e
+CB method [12] - discrete element idealization - stiffness matrices and mass matrices -  (opemfoam sparse asymmetric matrix)

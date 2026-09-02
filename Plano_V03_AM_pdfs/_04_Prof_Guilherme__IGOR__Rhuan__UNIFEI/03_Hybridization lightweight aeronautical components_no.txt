@@ -1,0 +1,29 @@
+Hybridization of generative design and TPMS lattices: A statistical approach for lightweight aeronautical components	
+                 _________________
+______________________________________________________________________________________________________________________________________________________
+SOFT		https://www.ptc.com  ($ 16k / year) 					https://www.makerverse.com/resources/3d-printing/the-laser-powder-bed-fusion-l-pbf-design-guide/
+HARDWARE	https://www.3dnatives.com/en/direct-metal-laser-sintering100420174-2/	https://www.ntop.com/
+
+
+Key words?
+	- relative density X mechanical behavior (& economic and manufacturing viability)		- mechanical and physical performance of the lattice structures.
+	- of statistical methods (such as DOE and ANOVA) to optimize TPMS lattices			19	20
+	- Elastic Modulus (E�) and Yield Strength (r�) ... degrade as ... relative density decreases.
+
+TPMS	- Triply Periodic Minimal Surfaces (gyroid structure)		Hybridization	- Shell + Infill		Design of Experiments (DoE) numerical simulations.
+								  _________________________________________________		
+
+
+cell types (B) 		BCC Gyroid Isotruss Kelvin Octec	(05)
+diameters  (A) 		3	4	5			(03)
+materials  ( ) 		316L	Alsi10Mg	T16AIdV		(03)			Beam diameter or wall thickness.		Mass, FoS, and Cost,
+
+Main effects: 		(a) displacement, (b) max stress, (c) mass, (d) FoS, (e) ro* ,(f) cost
+
+
+simplified regression models		design exploration		microporosity, surface roughness, and anisotropy		both geometric and mechanical responses
+
+______________________________________________________________________________________________________________________________________________________
+Genetic Algorithm (GA)		TOPSIS (Technique for Order of Preference by Similarity to Ideal Solution)				structural analysis
+
+load flow		torque and combined loads.	
