@@ -1,9 +1,0 @@
-...
-
-https://link.springer.com/article/10.1007/s40032-026-01443-5
-
-https://www.tandfonline.com/doi/full/10.1080/17452759.2026.2724697
-
-https://link.springer.com/article/10.1007/s40194-026-02601-0
-
-https://www.sciencedirect.com/science/article/pii/S0017931026009476?via%3Dihub		https://github.com/Leibniz-IWT/OpenFOAM-HighNitrogenSteel-Fe-Cr-C-N
