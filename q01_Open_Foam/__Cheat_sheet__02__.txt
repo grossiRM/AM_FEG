@@ -4,7 +4,6 @@ cp controlDict controlDict.foam | sonicFoam (toRun)
 
 \\wsl.localhost\Ubuntu\mnt\wslg\distro\usr\lib\openfoam\openfoam2412\applications\solvers\incompressible\icoFoam || solver
 \\wsl.localhost\Ubuntu\mnt\wslg\distro\usr\lib\openfoam\openfoam2412\bin\tools\RunFunctions
-
 	
 https://www.youtube.com/watch?v=KznljrgWS             ||01||  https://www.youtube.com/watch?v=bJTSKaxG58Y (20:00 Diagrams) József Nagy 	https://github.com/openfoam/openfoam-2.3.x
 E:\15_REPOS\a___________________\10_CFD__Off\202_Open_Foam\OpenFOAMTeaching\JozsefNagy\livestreams\First-tutorial\S1	József Nagy 	elbow | elbow_quad
@@ -20,6 +19,9 @@ https://www.youtube.com/watch?v=jfDzFPaPPug           ||06||
 
 
 
+
+
+_______________________________________________________ _______________________________________________________ _______________________________________________________ not yet
 99_HighNitrogenSteel-Fe-Cr-C-N_Case | blockMesh | 	01_Numerical modeling of nitrogen transport and loss during laser powder bed fusion of high nitrogen steels
 
 find . -name "*Zone.Identifier*" -type f -delete	find . -name "*Copy.Identifier*" -type f -delete
@@ -29,7 +31,3 @@ _____________________ https://www.youtube.com/watch?v=gQ6N9MNNgjw ___________   
 _____________________ https://www.openfoam.com/documentation/tutorial-guide/3-compressible-flow/3.2-supersonic-flow-over-a-forward-facing-step   ______ # forwardStep
 #justworks___________ file:///E:/15_REPOS/a___________________/10_CFD__Off/202_Open_Foam/CFD-Notebooks_NHERI-SimCenter/docs/lectures/beginner/lecture03.html	___ # NHERI
 https://www.cfdsupport.com/openfoam-training-by-cfd-support/node219/ SEE
-
-
-
-József Nagy magU
