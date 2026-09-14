@@ -1,13 +1,14 @@
+03__________________________________________________________________
 https://www.linkedin.com/posts/julian-avila-6941b041_postdoctoral-fellowship-opportunity-at-unesp-share-7503565868170375170-cHca/?utm_source=share&utm_medium=member_desktop&rcm=ACoAAAi_2tABM8OjD0VFZ3Kig6SjhA1xHMnEYZU
 	Research Focus: 							- Hydrogen embrittlement in additively manufactured components
 	https://lnkd.in/p/daimbcRH 						- 𝗪𝗵𝗲𝗿𝗲 𝗱𝗼𝗲𝘀 𝘁𝗵𝗲 𝗻𝗶𝘁𝗿𝗼𝗴𝗲𝗻 𝗴𝗼 𝗱𝘂𝗿𝗶𝗻𝗴 𝗹𝗮𝘀𝗲𝗿 𝗽𝗼𝘄𝗱𝗲𝗿 𝗯𝗲𝗱 𝗳𝘂𝘀𝗶𝗼𝗻 𝗼𝗳 𝗵𝗶𝗴𝗵-𝗻𝗶𝘁𝗿𝗼𝗴𝗲𝗻 𝘀𝘁𝗲𝗲𝗹?
 	https://bv.fapesp.br/en/auxilios/120160/microstructural-mechanisms-of	- hydrogen-embrittlement-in-additively-manufactured-metallic-components-/
-	Prof. Julian Arnaldo Avila Diaz - Guilherme Yuuki Koga - Renato Chaves Souza
+	Prof. Julian Arnaldo Avila Diaz - Guilherme Yuuki Koga - Renato Chaves Souza	
+	03_Numerical modeling of nitrogen transport and loss during laser powder bed fusion of high nitrogen steels
 
 
 https://link.springer.com/article/10.1007/s00170-026-18836-6		Hydrogen embrittlement in metal additive manufactured structures: mechanisms, challenges, and prospects
 https://www.sciencedirect.com/science/article/pii/S1359028623000517	Recent research progress in 	hydrogen embrittlement of additively manufactured metals – A review
-
 
 https://link.springer.com/article/10.1007/s40032-026-01443-		Thermal Stress and Distortion Analysis using Finite Element Analysis for the Wire-arc Directed Energy Deposition Process
 https://www.tandfonline.com/doi/full/10.1080/17452759.2026.2724697	From correlation to causation: data-mechanism dual-driven analysis of defects induced by melt pool dynamics
@@ -17,7 +18,5 @@ https://doi.org/10.3390/jmmp10090341		A Review of Meltpool Dynamics and Grain Ev
 https://doi.org/10.1007/s40964-026-01912-4	FEM ... intrinsic heat treatment induced aging in 18Ni300 maraging steel during direct laser powder deposition. Prog Addit Manuf (2026).
 https://doi.org/10.1007/s12206-026-0640-z	Residual stress formation and control in wire arc AM: Mechanisms, characterization, and mitigation strategies. J Mech Sci Technol (2026). 
 
-
-01_Numerical modeling of nitrogen transport and loss during laser powder bed fusion of high nitrogen steels
-02_A void-based framework for predicting hydrogen embrittlement.pdf
-03_Purpose-built WAAM 316L benchmark walls for thermo-mechanical calibration and strain-based hardness prediction
+01_A void-based framework for predicting hydrogen embrittlement.pdf
+02_Purpose-built WAAM 316L benchmark walls for thermo-mechanical calibration and strain-based hardness prediction

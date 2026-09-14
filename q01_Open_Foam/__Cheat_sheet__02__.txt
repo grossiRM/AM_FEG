@@ -20,7 +20,7 @@ https://www.youtube.com/watch?v=jfDzFPaPPug           ||06||
 
 
 
-
+99_HighNitrogenSteel-Fe-Cr-C-N_Case | blockMesh | 	01_Numerical modeling of nitrogen transport and loss during laser powder bed fusion of high nitrogen steels
 
 find . -name "*Zone.Identifier*" -type f -delete	find . -name "*Copy.Identifier*" -type f -delete
 _____________________ https://users.metu.edu.tr/csert/foamyLectures/lecture03.html	# Lectures
