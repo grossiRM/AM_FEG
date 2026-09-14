@@ -1,0 +1,5 @@
+Commands to be executed in this tutorial:
+
+- blockMesh
+- setFields
+- scalarTransportFoam

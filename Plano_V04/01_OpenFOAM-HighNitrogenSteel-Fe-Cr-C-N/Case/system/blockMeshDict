@@ -1,0 +1,175 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  4.1                                   |
+|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version      2.0;
+    format       ascii;
+    class        dictionary;
+    object       blockMeshDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+scale 1e-6;
+
+vertices
+(
+    (0 0 0)         // 0
+    (2400 0 0)      // 1
+    (2400 550 0)    // 2
+    (0 550 0)       // 3
+    (0 0 1050)      // 4
+    (2400 0 1050)   // 5
+    (2400 550 1050) // 6
+    (0 550 1050)    // 7
+    (2400 950 1050) // 8
+    (2400 950 0)    // 9
+    (0 950 0)       //10
+    (0 950 1050)    //11
+);
+
+blocks
+(
+    // Block 1: Angepasste Zellanzahl für ~3 µm Auflösung
+    hex (0 1 2 3 4 5 6 7) (683 66 113)
+    simpleGrading
+    (
+        // x-direction
+        (
+            (200 8 0.2)
+            (2000 667 1)  // 1400µm / 467 ≈ 3.003µm
+            (200 8 5)
+        )
+        // y-direction
+        (
+            (375 8 0.2)
+            (175 58 1)    // 175µm / 58 ≈ 3.017µm
+        )
+        // z-direction
+        (
+            (380 8 0.2)
+            (290 97 1)    // 240µm / 80 = 3.0µm
+            (380 8 5)
+        )
+    )
+    // Block 2: Angepasste Zellanzahl für ~3 µm Auflösung
+    hex (3 2 9 10 7 6 8 11) (683 55 113)
+    simpleGrading
+    (
+        // x-direction
+        (
+            (200 8 0.2)
+            (2000 667 1)  // 1000µm / 333 ≈ 3.003µm
+            (200 8 5)
+        )
+        // y-direction
+        (
+            (125 42 1)    // 125µm / 42 ≈ 2.976µm
+            (275 13 5)
+        )
+        // z-direction
+        (
+            (380 8 0.2)
+            (290 97 1)    // 240µm / 80 = 3.0µm
+            (380 8 5)
+        )
+    )
+);
+
+edges
+(
+);
+
+boundary
+(
+    atmosphere
+    {
+        type patch;
+        faces
+        (
+            (8 9 10 11)
+        );
+    }
+    leftair
+    {
+        type patch;
+        faces
+        (
+            (10 3 7 11)
+        );
+    }
+    leftWall
+    {
+        type wall;
+        faces
+        (
+            (0 4 7 3)
+        );
+    }
+    rightair
+    {
+        type patch;
+        faces
+        (
+            (8 6 2 9)
+        );
+    }
+    rightWall
+    {
+        type wall;
+        faces
+        (
+            (1 2 6 5)
+        );
+    }
+    lowerWall
+    {
+        type wall;
+        faces
+        (
+            (4 0 1 5)
+        );
+    }
+    backWall
+    {
+        type wall;
+        faces
+        (
+            (0 1 2 3)
+        );
+    }
+    backAir
+    {
+        type patch;
+        faces
+        (
+            (2 3 10 9)
+        );
+    }
+    frontWall
+    {
+        type wall;
+        faces
+        (
+            (7 4 5 6)
+        );
+    }
+    frontAir
+    {
+        type patch;
+        faces
+        (
+            (11 7 6 8)
+        );
+    }
+);
+
+mergePatchPairs
+(
+);
+
+// ************************************************************************* //

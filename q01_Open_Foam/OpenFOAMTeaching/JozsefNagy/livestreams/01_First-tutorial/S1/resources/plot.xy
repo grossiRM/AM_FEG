@@ -1,0 +1,38 @@
+#!/usr/bin/gnuplot    
+reset
+
+#JN: Change resolution here
+set term pngcairo dashed font "Times,20" size 1920,1080
+
+#JN: Change colors here
+set style line 1 lt 1 lw 3 linecolor rgb "#00AA15"
+set style line 2 lt 1 lw 3 linecolor rgb "#AA0095"
+set style line 3 lt 1 lw 3 linecolor rgb "#228B22"
+set style line 4 lt 1 lw 3 linecolor rgb "#008ECC"
+set style line 5 lt 1 lw 3 linecolor rgb "#006A99"
+set style line 6 lt 1 lw 3 linecolor rgb "#004766"
+set style line 7 lt 1 lw 3 linecolor rgb "#F5FF00"
+set style line 8 lt 1 lw 3 linecolor rgb "#E64600"
+set style line 9 lt 1 lw 3 linecolor rgb "#CC3E00"
+set style line 10 lt 1 lw 3 linecolor rgb "#B23600"
+
+#JN: change filename here
+set output 'plot.png'
+
+#JN: change axes here
+set grid
+set xrange [0:70] 
+set xtics 10
+set xlabel "distance [m]" font "Times Bold,20"
+
+set yrange [-4:1] 
+set ytics 0.5
+set ylabel "pressure [m^2/s^2]" font "Times Bold,20"
+
+set y2range [0:5] 
+set y2tics 0.5
+set y2label "velocity [m/s]" font "Times Bold,20"
+set key outside center top horizontal
+
+plot "postProcessing/samples/10/myLine_p.xy" using 1:2 title 'pressure' w l ls 4, \
+     "postProcessing/samples/10/myLine_U.xy" using 1:(sqrt($2*$2+$3*$3+$4*$4)) title 'velocity' axes x1y2 w l ls 2

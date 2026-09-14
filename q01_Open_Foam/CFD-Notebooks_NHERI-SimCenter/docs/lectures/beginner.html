@@ -1,0 +1,294 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>1. Beginner lectures &mdash; CFD-Notebooks 1.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/language_data.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/custom.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Lecture 01: Getting started" href="beginner/lecture01.html" />
+    <link rel="prev" title="5. Copyright and License" href="../geninfo/copyright.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: #F2F2F2" >
+          
+
+          
+            <a href="../index.html">
+          
+
+          
+            
+            <img src="../_static/CFDN.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">General information</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../geninfo/acknowledgement.html">1. Acknowledgements</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../geninfo/about.html">2. About</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../geninfo/getting-started.html">3. Getting started with CFDN</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../geninfo/errors.html">4. Troubleshooting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../geninfo/copyright.html">5. Copyright and License</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Lecture notebooks</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">1. Beginner lectures</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#learning-objectives">1.1. Learning objectives</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#pre-requisites">1.2. Pre-requisites</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#lecture-notebooks-theory">1.3. Lecture notebooks (Theory)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="beginner/lecture01.html">Lecture 01: Getting started</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beginner/lecture02.html">Lecture 02: Files and solvers</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beginner/lecture03.html">Lecture 03: Boundary conditions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="beginner/lecture04.html">Lecture 04: blockMesh</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#practice-problems">1.4. Practice problems</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#references">1.5. References</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="intermediate.html">2. Intermediate lectures</a></li>
+<li class="toctree-l1"><a class="reference internal" href="advanced.html">3. Advanced lectures</a></li>
+<li class="toctree-l1"><a class="reference internal" href="professional.html">4. Professional lectures</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">CFD-Notebooks</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+      <li><span class="section-number">1. </span>Beginner lectures</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="beginner-lectures">
+<span id="lbl-beginner"></span><h1><span class="section-number">1. </span>Beginner lectures<a class="headerlink" href="#beginner-lectures" title="Permalink to this headline">¶</a></h1>
+<p>In this beginner series on OpenFOAM, we will help you understand the structure of the OpenFOAM directories and file system, creating boundary conditions, setting up a mesh using <code class="docutils literal notranslate"><span class="pre">blockMesh</span></code> utility. By the end of the lecture series, you should be able to run sample cases on Designsafe cyberinfrastructure hosted by TACC supercomputer Stampede2.</p>
+<div class="section" id="learning-objectives">
+<h2><span class="section-number">1.1. </span>Learning objectives<a class="headerlink" href="#learning-objectives" title="Permalink to this headline">¶</a></h2>
+<p>Upon completion of this beginner series, you should have the ability to:</p>
+<ul class="simple">
+<li><p>Modify the files and file directories of OpenFOAM</p></li>
+<li><p>Modify and setup boundary conditions</p></li>
+<li><p>Mesh using <code class="docutils literal notranslate"><span class="pre">blockMesh</span></code> utilities</p></li>
+<li><p>Run OpenFOAM jobs on supercomputing cluster Stampede2</p></li>
+<li><p>Be exposed to Agave API and Jupyter notebooks</p></li>
+<li><p>Visualize OpenFOAM results using Paraview</p></li>
+</ul>
+</div>
+<div class="section" id="pre-requisites">
+<h2><span class="section-number">1.2. </span>Pre-requisites<a class="headerlink" href="#pre-requisites" title="Permalink to this headline">¶</a></h2>
+<p>This is a beginner series in OpenFOAMbut requires a basic knowledge of:</p>
+<ul class="simple">
+<li><p>Fluid Mechanics</p></li>
+<li><p>Basic knowledge of using a computer</p></li>
+</ul>
+</div>
+<div class="section" id="lecture-notebooks-theory">
+<h2><span class="section-number">1.3. </span>Lecture notebooks (Theory)<a class="headerlink" href="#lecture-notebooks-theory" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="beginner/lecture01.html">Lecture 01: Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beginner/lecture02.html">Lecture 02: Files and solvers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beginner/lecture03.html">Lecture 03: Boundary conditions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="beginner/lecture04.html">Lecture 04: blockMesh</a></li>
+</ul>
+</div>
+</div>
+<div class="section" id="practice-problems">
+<h2><span class="section-number">1.4. </span>Practice problems<a class="headerlink" href="#practice-problems" title="Permalink to this headline">¶</a></h2>
+<p>We have also outlined some practice problems and case files that you can use to test your skills. The case files and the solutions can be downloaded separately. For more check out <a class="reference internal" href="beginner/sample-cases.html#lbl-sample-cases"><span class="std std-ref">Sample problems</span></a>.</p>
+</div>
+<div class="section" id="references">
+<h2><span class="section-number">1.5. </span>References<a class="headerlink" href="#references" title="Permalink to this headline">¶</a></h2>
+<p>Some books on fluid mechanics are listed below:</p>
+<ul class="simple">
+<li><ol class="upperalpha simple" start="7">
+<li><ol class="upperalpha simple" start="11">
+<li><p>Batchelor, “An introduction to fluid dynamics,” Cambridge University Press (ISBN: 978-0521663960)</p></li>
+</ol>
+</li>
+</ol>
+</li>
+<li><ol class="upperalpha simple" start="10">
+<li><ol class="upperalpha simple" start="4">
+<li><p>Anderson, “Modern compressible flow: With historical perspective,” McGraw-Hill Education (ISBN: 978-0072424430)</p></li>
+</ol>
+</li>
+</ol>
+</li>
+<li><ol class="upperalpha simple" start="6">
+<li><ol class="upperalpha simple" start="13">
+<li><p>White, “Viscous fluid flow,” Tata Mcgraw Hill (ISBN: 978-1259002120)</p></li>
+</ol>
+</li>
+</ol>
+</li>
+</ul>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, SimCenter
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+    
+
+  <style>
+         .wy-nav-content { max-width: none; }
+  </style>
+
+
+
+</body>
+</html>

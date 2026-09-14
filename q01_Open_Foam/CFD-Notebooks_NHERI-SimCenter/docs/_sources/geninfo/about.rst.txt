@@ -1,0 +1,25 @@
+.. _lbl-about:
+
+About
+=========
+
+CFD Notebooks is an educational application published on Designsafe and available through the `CFD Notebooks Simcenter page <https://simcenter.designsafe-ci.org/learning-tools/cfd-notebooks>`_, and released under a **BSD Clause 2** license. The CFD Notebooks are a set of Jupyter notebooks aimed at senior undergraduate and early graduate students who are interested in learning OpenFOAM. It aims to help students and learners to:
+
+* Get started with OpenFOAM and running it on a computing cluster
+* Understand the file structure of OpenFOAM
+* Setting up boundary conditions and their physical interpretation
+* Meshing using blockMesh and snappyHexMesh functionalities
+* Turbulence models available in OpenFOAM
+* Concepts of Finite Volume Method (FVM)
+* Post-processing capabilities in OpenFOAM
+* Using advanced options like writing one's own boundary conditions
+
+.. figure:: images/CFDN_Info.png
+    :width: 400px
+    :align: center
+    :alt: alternate text
+    :figclass: align-center
+
+OpenFOAM simulations can be prohibitively expensive to perform on a user’s local computer. Thus, CFD Notebooks are  seamlessly integrated to facilitate the learners to perform the computations remotely on the Stampede2 supercomputer. Stampede2 is located at the Texas Advanced Computing Center (TACC) and made available to the user through NHERI DesignSafe, the cyberinfrastructure provider for the distributed NSF funded Natural Hazards in Engineering Research Infrastructure (NHERI) facility.
+
+This document covers version 1.0 of the tool. Users are encouraged to comment on additional features and capabilities they would like to see in this application. These requests and feedback can be submitted through the `Message Board <http://simcenter-messageboard.designsafe-ci.org/smf/index.php?board=11.0>`_ we greatly appreciate any input you have.

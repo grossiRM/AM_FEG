@@ -1,0 +1,506 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Lecture 02: Files and solvers &mdash; CFD-Notebooks 1.0 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/language_data.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/css/custom.css" type="text/css" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Lecture 03: Boundary conditions" href="lecture03.html" />
+    <link rel="prev" title="Lecture 01: Getting started" href="lecture01.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: #F2F2F2" >
+          
+
+          
+            <a href="../../index.html">
+          
+
+          
+            
+            <img src="../../_static/CFDN.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">General information</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../geninfo/acknowledgement.html">1. Acknowledgements</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../geninfo/about.html">2. About</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../geninfo/getting-started.html">3. Getting started with CFDN</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../geninfo/errors.html">4. Troubleshooting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../geninfo/copyright.html">5. Copyright and License</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Lecture notebooks</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="../beginner.html">1. Beginner lectures</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../beginner.html#learning-objectives">1.1. Learning objectives</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../beginner.html#pre-requisites">1.2. Pre-requisites</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="../beginner.html#lecture-notebooks-theory">1.3. Lecture notebooks (Theory)</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="lecture01.html">Lecture 01: Getting started</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Lecture 02: Files and solvers</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#case-directories">Case directories</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#openfoam-files">OpenFOAM files</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#openfoam-solvers">OpenFOAM Solvers</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utilities-and-libraries">Utilities and Libraries</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="lecture03.html">Lecture 03: Boundary conditions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="lecture04.html">Lecture 04: blockMesh</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../beginner.html#practice-problems">1.4. Practice problems</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../beginner.html#references">1.5. References</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../intermediate.html">2. Intermediate lectures</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../advanced.html">3. Advanced lectures</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../professional.html">4. Professional lectures</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">CFD-Notebooks</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../beginner.html"><span class="section-number">1. </span>Beginner lectures</a> &raquo;</li>
+        
+      <li>Lecture 02: Files and solvers</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="lecture-02-files-and-solvers">
+<span id="lbl-lecture02"></span><h1>Lecture 02: Files and solvers<a class="headerlink" href="#lecture-02-files-and-solvers" title="Permalink to this headline">¶</a></h1>
+<p>As already discussed, OpenFOAM is basically a collection of C++ programs that can be utilized to solve differential equations. More specifically, OpenFOAM declarations belong to a namespace called foam. The OpenFOAM distribution comprises the following main directories:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">src</span></code>: the core OpenFOAM libraries</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">applications</span></code>: solvers and utilities</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">modules</span></code>: Third-party code contributions</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">tutorials</span></code>: test-cases that demonstrate a wide-range of OpenFOAM functionality</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">doc</span></code>: documentation</p></li>
+</ul>
+<p>The tools or directories of our present interest are applications and libraries and hence we will only be discussing these in this lecture.</p>
+<div class="section" id="case-directories">
+<h2>Case directories<a class="headerlink" href="#case-directories" title="Permalink to this headline">¶</a></h2>
+<p>This section deals with the file structure and organization of OpenFOAM cases. Normally, a user would assign a name to a case, e.g. the tutorial case of flow in a cavity is simply named cavity. This name becomes the name of a directory in which all the case files and sub-directories are stored. The tutorial cases that accompany the OpenFOAM distribution provide useful examples of the case directory structures. The basic directory structure for an OpenFOAM case, that contains the minimum set of files required to run an application is shown in figure below:</p>
+<div class="align-center figure">
+<a class="reference internal image-reference" href="../../_images/CaseFiles.png"><img alt="alternate text" src="../../_images/CaseFiles.png" style="width: 400px;" /></a>
+</div>
+<p>Therefore, any OpenFOAM case must contain the following directories and these are further discussed in detail in the upcoming sub-sections</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">constant</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">0</span></code> (Zero)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">system</span></code></p></li>
+</ul>
+<div class="section" id="constant-directory">
+<h3><code class="docutils literal notranslate"><span class="pre">constant</span></code> directory<a class="headerlink" href="#constant-directory" title="Permalink to this headline">¶</a></h3>
+<p>The files in the constant directory usually include files that provide information about constants that are used in the project. This include material properties, turbulence properties etc. In the directory <code class="docutils literal notranslate"><span class="pre">polyMesh</span></code>, the mesh data are stored (in this case the data for converted mesh). The boundary file in this <code class="docutils literal notranslate"><span class="pre">polyMesh</span></code> directory includes the mesh boundary data, e.g. type, the patch group, number of faces on this boundary and also starting face number (unique face IDs) for this boundary, e.g. <code class="docutils literal notranslate"><span class="pre">transportProperties</span></code>.</p>
+</div>
+<div class="section" id="zero-directory">
+<h3><code class="docutils literal notranslate"><span class="pre">0</span></code> (Zero) directory<a class="headerlink" href="#zero-directory" title="Permalink to this headline">¶</a></h3>
+<p>The <code class="docutils literal notranslate"><span class="pre">0</span></code> directory includes the initial conditions for running the simulation. In each file in this folder the initial conditions for one property can be set.</p>
+</div>
+<div class="section" id="time-directories">
+<h3>Time directories<a class="headerlink" href="#time-directories" title="Permalink to this headline">¶</a></h3>
+<p>The time directories appear in the case file after the case is simulated. It can also be used specify initial conditions. The solution files contain solved data for particular fields, e.g.  velocity, temperature, pressure. The data contained are results written to file by OpenFOAM. For example, in the <code class="docutils literal notranslate"><span class="pre">cavity</span></code> tutorial, the velocity field and pressure fields are initialized from files <code class="docutils literal notranslate"><span class="pre">0/U</span></code> and <code class="docutils literal notranslate"><span class="pre">0/p</span></code> respectively.</p>
+</div>
+<div class="section" id="system-directory">
+<h3><code class="docutils literal notranslate"><span class="pre">system</span></code> directory<a class="headerlink" href="#system-directory" title="Permalink to this headline">¶</a></h3>
+<p>This directory is for setting parameters associated with the solution procedure itself. It contains at least the following three files:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">fvSchemes</span></code>: The discretization scheme which is used for each term of the equations are set in this file.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">fvSolution</span></code>: This contains the settings to the coupling method of pressure and velocity, the numerical methods, which are used for solving different quantities, and also the final tolerance for convergence of that quantity.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">controlDict</span></code>: The <code class="docutils literal notranslate"><span class="pre">controlDict</span></code> dictionary is used to specify the main case controls. This includes, e.g. timing information, write format, and optional libraries that can be loaded at run time.</p></li>
+</ul>
+</div>
+</div>
+<div class="section" id="openfoam-files">
+<h2>OpenFOAM files<a class="headerlink" href="#openfoam-files" title="Permalink to this headline">¶</a></h2>
+<p>Let us continue to look at the functionality of each file in the OpenFOAM directory. Of particular interest are the files in the system and control directories since these files control the flow of the simulation. We will particularly address the mesh files in the upcoming lectures.</p>
+<div class="section" id="system-fvsolution-file">
+<h3><code class="docutils literal notranslate"><span class="pre">system/fvSolution</span></code> file<a class="headerlink" href="#system-fvsolution-file" title="Permalink to this headline">¶</a></h3>
+<p>The <code class="docutils literal notranslate"><span class="pre">fvSolution</span></code> file includes the description of solvers, smoothers and relaxation factors. Here solvers refer to the methods that are used to solve the final matrix equations that are obtained from the discretization of the original differential equations. In this regard, there are direct and iterative solvers that can be utilized. Most often, these solvers need pre-processing before the system of equations can be solved. Here, pre-conditioners improve the condition numbers, smoothers reduce the number of iterations required to solve, tolerances are specified to provide value at which convergence is achieved. Thus, the methods required for the pre-conditioners, smoothers and tolerances also need to be provided along with the information about a solver.</p>
+<p>The syntax for each entry within solvers starts with a keyword that is of the variable being solved in the particular equation. For example, <code class="docutils literal notranslate"><span class="pre">icoFoam</span></code> solves equations for velocity and pressure, hence contains the entries for velocity <code class="docutils literal notranslate"><span class="pre">U</span></code> and pressure <code class="docutils literal notranslate"><span class="pre">p</span></code>. The keyword relates to a sub-dictionary containing the type of solver and the parameters that the solver uses. If the user specifies a symmetric solver for an asymmetric matrix, or vice versa, an error message will be written to advise the user accordingly. The following solvers are used for the present version in OpenFOAM:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">PCG/PBiCGStab</span></code>: Stabilised preconditioned (bi-)conjugate gradient solver, for both symmetric and asymmetric matrices.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">PCG/PBiCG</span></code>: Preconditioned (bi-)conjugate gradient, with PCG for symmetric matrices, PBiCG for asymmetric matrices.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">smoothSolver</span></code>: solver that uses a smoother. This also requires a smoother to be provided. Some of the smoothers include <code class="docutils literal notranslate"><span class="pre">GaussSeidel</span></code>, <code class="docutils literal notranslate"><span class="pre">symGaussSeidel</span></code>, <code class="docutils literal notranslate"><span class="pre">DIC/DILU</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">GAMG</span></code>: The generalized method of Geometric-Algebraic Multi-Grid (GAMG) solvers are faster than standard methods. They solve a solution on a coarser mesh, map this solution onto a finer mesh and then use the mapped solution as a first approximation. Here, GAMG starts with the mesh specified by the user and automatically coarsens or refines the mesh. There are several options available for the GAMG solvers that control the agglomeration of cells. The primary ones include:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">cacheAgglomeration</span></code>: A switch to specify caching of the agglomeration strategy (default true)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">nCellsInCoarsestLevel</span></code>: Approximate mesh size at the coarsest level (default 10)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">directSolveCoarset</span></code>: Switch to use a direct solver at the coarsest level (default false)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">mergeLevels</span></code>: It controls the speed and number of levels to be refined at a time (default 1)</p></li>
+</ul>
+</div></blockquote>
+</li>
+</ul>
+<p>As discussed earlier, when iterative solvers are used, a pre-conditioner is needed to improve the solvability of the system of matrix equations. Pre-conditioning is the application of a transformation, called the pre-conditioner, that conditions a given problem into a form that is more suitable for numerical solving methods. Pre-conditioning is typically related to reducing a condition number of the problem. The pre-conditioned problem is then usually solved by an iterative method. A preconditioned iterative solver solves the system <span class="math notranslate nohighlight">\([M]^{-1}[A]{x} = [M]^{-1}{b}\)</span> with <span class="math notranslate nohighlight">\(M\)</span> being the pre-conditioner. The chosen pre-conditioner should ensure that convergence for the preconditioned system is much faster than for the original one. In simple terms, the pre-conditioner leads to a faster propagation of information through the mesh. The pre-conditioners available in OpenFOAM include:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">DICPreconditioner</span></code>: A simplifed diagonal-based incomplete Cholesky preconditioner for symmetric matrices (symmetric equivalent of DILU). The reciprocal of the preconditioned diagonal is calculated and stored</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">DIC/DILU</span></code>: Diagonal incomplete-Cholesky (symmetric) and incomplete-LU (asymmetric)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">GAMG</span></code>: geometric-algebraic multi-grid</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">none</span></code>: no preconditioning</p></li>
+</ul>
+<p>Although the preconditioners can considerably reduce the number of iterations, they do not normally reduce the mesh dependency of the numbers of iterations. OpenFOAM supplies the following smoothers to be used with the solvers and the choice of smoother to be specified. The smoother options are listed below. The <code class="docutils literal notranslate"><span class="pre">symGaussSeidel</span></code> and <code class="docutils literal notranslate"><span class="pre">GaussSeidel</span></code> smoothers are often suitable for general problems and used extensively in the OpenFOAM tutorials. Tohers include, <code class="docutils literal notranslate"><span class="pre">DIC/DILU</span></code> and <code class="docutils literal notranslate"><span class="pre">DICGaussSeidel</span></code>. On aspect to note is that when using the smooth solvers, the user can optionally specify the number of sweeps, by the <code class="docutils literal notranslate"><span class="pre">nSweeps</span></code> keyword, before the residual is recalculated.</p>
+<p>Since the solvers are generally iterative, in nature, we need to further specify when the convergence has been reached. Numerically, we will never reach a zero but reach thresholds like <span class="math notranslate nohighlight">\(10^{-4}, 10^{-8}, 10^{-16}\)</span> and so on. Thus, we need to specify a small number when we can say the convergence has been reached. This is done by specifying the tolerance for the residual. The residual is the measure of the error in the solution. Ideally, it is expected that after each solver iteration, the residual is re-evaluated and is smaller than that of the previous iteration. A solver eventually stops when one of the below three conditions are met:</p>
+<ul class="simple">
+<li><p>The residual falls below the solver tolerance</p></li>
+<li><p>The ratio of the current to the initial residuals falls below the solver’s relative tolerance <code class="docutils literal notranslate"><span class="pre">relTol</span></code></p></li>
+<li><p>The number of iterations exceeds a maximum number of iterations <code class="docutils literal notranslate"><span class="pre">maxIter</span></code></p></li>
+</ul>
+<p>The solver tolerance should represent the level at which the residual is small enough that the solution can be deemed sufficiently accurate. The solver relative tolerance limits the relative improvement from initial to final solution. Most fluid dynamics solver applications in OpenFOAM use either the pressure-implicit split-operator <code class="docutils literal notranslate"><span class="pre">PISO</span></code>, the semi-implicit method for pressure-linked equations <code class="docutils literal notranslate"><span class="pre">SIMPLE</span></code> algorithms, or a combined <code class="docutils literal notranslate"><span class="pre">PIMPLE</span></code> algorithm. Equations are very often solved multiple times within one solution step, or time step. For example, when using the <code class="docutils literal notranslate"><span class="pre">PISO</span></code> algorithm, a pressure equation is solved according to the number specified by <code class="docutils literal notranslate"><span class="pre">nCorrectors</span></code>.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">relaxationFactors</span></code> controls the stability of a computation, particularly in solving steady-state problems. Relaxation factors play a vital role in determining the rate of convergence for CFD simulation. When the relaxation factor is less than one it is said to be under relaxed else it is called over relaxed. When the under relaxed values are applied to the successive iterations of the point iterative techniques such as Gauss-Seidel method, the convergence rate of the solution increases. We will discuss the topic of relaxation further in the advanced tutorials.</p>
+<p>The last topic is of <strong>pressure referencing</strong>. In a closed incompressible system, the pressure is relative. In otherwords, it is the pressure range that matters not the absolute values. In these cases, the solver sets a reference level equal to <code class="docutils literal notranslate"><span class="pre">pRefValue</span></code> in the cell <code class="docutils literal notranslate"><span class="pre">pRefCell</span></code>. These entries are generally stored in the <code class="docutils literal notranslate"><span class="pre">SIMPLE</span></code>, <code class="docutils literal notranslate"><span class="pre">PISO</span></code> or <code class="docutils literal notranslate"><span class="pre">PIMPLE</span></code> sub-dictionaries and are used by those solvers that require them when the case demands it. We will again address these issues later in the advanced tutorials.</p>
+</div>
+<div class="section" id="system-fvschemes-file">
+<h3><code class="docutils literal notranslate"><span class="pre">system/fvSchemes</span></code> file<a class="headerlink" href="#system-fvschemes-file" title="Permalink to this headline">¶</a></h3>
+<p>The <code class="docutils literal notranslate"><span class="pre">fvSchemes</span></code> file in the system directory sets the numerical schemes for terms, such as derivatives in equations, that are calculated during a simulation. Before going into the layout of <code class="docutils literal notranslate"><span class="pre">fvSchemes</span></code>, it is essential to understand how OpenFOAM accepts or takes inputs of partial differential equations. A central theme of the OpenFOAM design is that the solver applications, written using the OpenFOAM classes, have a syntax that closely resembles the partial differential equations being solved. For example, the equation</p>
+<div class="math notranslate nohighlight">
+\[\frac{\partial \rho U }{\partial t} + \nabla \cdot \phi - \nabla \cdot \mu \nabla U = - \nabla p\]</div>
+<p>is represented by the code,</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">solve</span>
+<span class="p">(</span>
+    <span class="n">fvm</span><span class="o">::</span><span class="n">ddt</span><span class="p">(</span><span class="n">rho</span><span class="p">,</span> <span class="n">U</span><span class="p">)</span>
+  <span class="o">+</span> <span class="n">fvm</span><span class="o">::</span><span class="n">div</span><span class="p">(</span><span class="n">phi</span><span class="p">,</span> <span class="n">U</span><span class="p">)</span>
+  <span class="o">-</span> <span class="n">fvm</span><span class="o">::</span><span class="n">laplacian</span><span class="p">(</span><span class="n">mu</span><span class="p">,</span> <span class="n">U</span><span class="p">)</span>
+    <span class="o">==</span>
+  <span class="o">-</span> <span class="n">fvc</span><span class="o">::</span><span class="n">grad</span><span class="p">(</span><span class="n">p</span><span class="p">)</span>
+<span class="p">);</span>
+</pre></div>
+</div>
+<p>The set of terms, for which numerical schemes must be specified, are subdivided within the <code class="docutils literal notranslate"><span class="pre">fvSchemes</span></code> file into the categories below. Each keyword in represents the name of a sub-dictionary which contains terms of a particular type.</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">timeScheme</span></code>: First and second time derivatives, e.g. <code class="docutils literal notranslate"><span class="pre">ddt</span></code> for <span class="math notranslate nohighlight">\(\frac{\partial }{\partial t}\)</span></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">gradSchemes</span></code>: Gradient terms, e.g., <code class="docutils literal notranslate"><span class="pre">grad(p)</span></code>, which represents <span class="math notranslate nohighlight">\(\nabla p\)</span></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">divSchemes</span></code>: Divergence terms</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">laplacianSchemes</span></code>: Laplacian  terms</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">interpolationSchemes</span></code>: Cell to face interpolations of values</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">snGradSchemes</span></code>: Component of gradient normal to a cell face</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">wallDist</span></code>: Distance to wall calculation.</p></li>
+</ul>
+<p>A sample file of the <code class="docutils literal notranslate"><span class="pre">fvSchemes</span></code> is shown below to illustrate various schemes</p>
+<p>If a default scheme is specified in a particular <code class="docutils literal notranslate"><span class="pre">Schemes</span></code> sub-dictionary, it is assigned to all of the terms in the sub-dictionary except those terms that are explicitly specified otherwise. We can also specify that no default scheme by the <code class="docutils literal notranslate"><span class="pre">none</span></code> entry. In this section, only the time schemes are discussed. The first time derivative <span class="math notranslate nohighlight">\(\left( \frac{\partial }{\partial t} \right)\)</span> terms are specified in the <code class="docutils literal notranslate"><span class="pre">ddtSchemes</span></code> sub-dictionary. The discretization schemes for each term can be selected from those listed below.</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">steadyState</span></code>: sets time derivatives to zero.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Euler</span></code>: transient, first order implicit, bounded.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">backward</span></code>: transient, second order implicit, potentially unbounded.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">CrankNicolson</span></code>: transient, second order implicit, bounded; requires an off-centering coefficient</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">localEuler</span></code>: pseudo transient for accelerating a solution to steady-state using local-time stepping; first order implicit.</p></li>
+</ul>
+<p>It is important to note here that for any second-order time derivative <span class="math notranslate nohighlight">\(\frac{\partial ^ 2 }{\partial t^2}\)</span> terms, only the Euler scheme is available for <code class="docutils literal notranslate"><span class="pre">d2dt2Schemes</span></code>.</p>
+</div>
+<div class="section" id="system-controldict-file">
+<h3><code class="docutils literal notranslate"><span class="pre">system/controlDict</span></code> file<a class="headerlink" href="#system-controldict-file" title="Permalink to this headline">¶</a></h3>
+<p>The last important file is the <code class="docutils literal notranslate"><span class="pre">controlDict</span></code>. This controls all the simulation parameters like start and stop times, time interval, time interval for writing outputs and so on.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">controlDict</span></code> dictionary sets input parameters essential for the creation of the database.</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">startFrom</span></code> : This function controls the start time of the simulation.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">startTime</span></code>: It is the numerical value of the start time for the simulation.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">stopAt</span></code>: This function controls the end time of the simulation.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">endTime</span></code>: It is the End time for the simulation when stopAt endTime.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">deltaT</span></code>: It is the Time step of the simulation.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">writeControl</span></code>: This function controls the timing of write output to file.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">writeInterval</span></code>: This function is a scalar which is used in conjunction with <code class="docutils literal notranslate"><span class="pre">writeControl</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">timeStep</span></code>: It writes data every <code class="docutils literal notranslate"><span class="pre">writeInterval</span></code> time steps.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">purgeWrite</span></code>: It is an integer representing a limit on the number of time directories that are stored by overwriting time directories on a cyclic basis.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">writeFormat</span></code>: It specifies the format of the data files.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Ascii</span></code>: ASCII format, written to <code class="docutils literal notranslate"><span class="pre">writePrecision</span></code> significant figures.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">writePrecision</span></code> : It is an integer used in conjunction with <code class="docutils literal notranslate"><span class="pre">writeFormat</span></code>, 6 by default.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">writeCompression</span></code>: Switch to specify whether files are compressed with gzip when written: on/off.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">timeFormat</span></code>: It is the choice of format of the naming of the time directories.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">general</span></code>: Specifies scientific format if the exponent is less than -4 or greater than or equal to that specified by <code class="docutils literal notranslate"><span class="pre">timePrecision</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">timePrecision</span></code>: It is an integer used in conjunction with <code class="docutils literal notranslate"><span class="pre">timeFormat</span></code> , 6 by default.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">runTimeModifiable</span></code>: Switch for whether dictionaries, e.g. <code class="docutils literal notranslate"><span class="pre">controlDict</span></code>, are re-read during a simulation at the beginning of each time step, allowing the user to modify parameters during a simulation.</p></li>
+</ul>
+</div>
+<div class="section" id="other-case-files">
+<h3>Other case files<a class="headerlink" href="#other-case-files" title="Permalink to this headline">¶</a></h3>
+<p>The other case files present in the <code class="docutils literal notranslate"><span class="pre">tutorial</span></code> directory for a case are <code class="docutils literal notranslate"><span class="pre">transportProperties</span></code>, <code class="docutils literal notranslate"><span class="pre">turbulenceProperties</span></code> stored in the <code class="docutils literal notranslate"><span class="pre">constant</span></code> sub directory and initial conditions such as initial pressure and velocity magnitude stored in the <code class="docutils literal notranslate"><span class="pre">0</span></code> sub directory. More information about these files will be discussed in the coming lectures.</p>
+</div>
+</div>
+<div class="section" id="openfoam-solvers">
+<h2>OpenFOAM Solvers<a class="headerlink" href="#openfoam-solvers" title="Permalink to this headline">¶</a></h2>
+<p>While the word <code class="docutils literal notranslate"><span class="pre">solvers</span></code> is used often and interchangeably in the context of OpenFOAM literature, it should be noted here that we are talking here about a workflow that has been designed to solve a specific genre of problem in computational continuum mechanics. OpenFOAM does not have a generic solver applicable to all types of problems. Instead, users must choose a specific solver for a class of problems to solve. There are flow Solvers as well as non-flow (other) solvers present in the package. The flow solvers include:</p>
+<ul class="simple">
+<li><p>Basic</p></li>
+<li><p>Incompressible</p></li>
+<li><p>Compressible</p></li>
+<li><p>Heat transfer</p></li>
+<li><p>Multiphase</p></li>
+<li><p>Lagrangian particles</p></li>
+<li><p>Discrete methods</p></li>
+<li><p>Combustion</p></li>
+<li><p>DNS</p></li>
+</ul>
+<p>and the non-flow solver includes, those applicable for</p>
+<ul class="simple">
+<li><p>Electromagnetics</p></li>
+<li><p>Financial</p></li>
+<li><p>Stress analysis</p></li>
+</ul>
+<p>There are a slew of solvers available. The summary of capabilities of the solvers are as given in the table below. In the next subsections, we will look at a comprehensive list of solvers available and their utility value.</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 23%" />
+<col style="width: 15%" />
+<col style="width: 21%" />
+<col style="width: 20%" />
+<col style="width: 21%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Solver</p></th>
+<th class="head"><p>Transient</p></th>
+<th class="head"><p>Compressible</p></th>
+<th class="head"><p>Turbulence</p></th>
+<th class="head"><p>Dynamic Mesh</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>boundaryFoam</p></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p>icoFoam</p></td>
+<td><p>X</p></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p>pimpleFoam</p></td>
+<td><p>X</p></td>
+<td></td>
+<td><p>X</p></td>
+<td><p>X</p></td>
+</tr>
+<tr class="row-odd"><td><p>laplacianFoam</p></td>
+<td><p>X</p></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p>pisoFoam</p></td>
+<td><p>X</p></td>
+<td></td>
+<td><p>X</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p>simpleFoam</p></td>
+<td></td>
+<td></td>
+<td><p>X</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p>sonicFoam</p></td>
+<td><p>X</p></td>
+<td><p>X</p></td>
+<td><p>X</p></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<div class="section" id="basic-solvers">
+<h3>Basic solvers<a class="headerlink" href="#basic-solvers" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">laplacianFoam</span></code>: Solves a simple Laplace equation, e.g. for thermal diffusion in a solid</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">potentialFoam</span></code>: Potential flow solver which solves for the velocity potential, to calculate the flux-field, from which the velocity field is obtained by reconstructing the flux</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">scalarTransportFoam</span></code>: Solves the steady or transient transport equation for a passive scalar</p></li>
+</ul>
+</div>
+<div class="section" id="incompressible-flow-solvers">
+<h3>Incompressible flow solvers<a class="headerlink" href="#incompressible-flow-solvers" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">boundaryFoam</span></code>: Steady-state solver for incompressible, 1D turbulent flow, typically to generate boundary layer conditions at an inlet, for use in a simulation.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">icoFoam</span></code>: Transient solver for incompressible, laminar flow of Newtonian fluids.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">pimpleFoam</span></code>: Transient solver for incompressible, turbulent flow of Newtonian fluids, with optional mesh motion and mesh topology changes.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">pisoFoam</span></code>: Transient solver for incompressible, turbulent flow, using the PISO algorithm.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">simpleFoam</span></code>: Steady-state solver for incompressible, turbulent flow, using the SIMPLE algorithm.</p></li>
+</ul>
+</div>
+<div class="section" id="compressible-solvers">
+<h3>Compressible solvers<a class="headerlink" href="#compressible-solvers" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">sonicFoam</span></code>: Transient solver for trans-sonic/supersonic, turbulent flow of a compressible gas.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">rhoPimpleFoam</span></code>: Transient solver for turbulent flow of compressible fluids for HVAC and similar applications, with optional mesh motion and mesh topology changes.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">rhoSimpleFoam</span></code>: Steady-state solver for turbulent flow of compressible fluids.</p></li>
+</ul>
+</div>
+</div>
+<div class="section" id="utilities-and-libraries">
+<h2>Utilities and Libraries<a class="headerlink" href="#utilities-and-libraries" title="Permalink to this headline">¶</a></h2>
+<p>Utilities are tools that aid in pre-processing, mesh generation, mesh manipulation, post processing and other miscellaneous activities. They perform simple pre-and post-processing tasks mainly involving data manipulation and algebraic calculations and meshing. For example, <code class="docutils literal notranslate"><span class="pre">checkMesh</span></code> checks the validity of a mesh. Each application is designed to be executed from a terminal command line, typically reading and writing a set of data files associated with a particular case. The data files for a case are stored in a directory named after the case.</p>
+<p>Together, the <code class="docutils literal notranslate"><span class="pre">solver</span></code> and the associated <code class="docutils literal notranslate"><span class="pre">utilities</span></code> are involved in the working of an application. OpenFOAM applications are organized using a standard convention that the source code of each application is placed in a directory whose name is that of the application. The top level source file then takes the application name with the <code class="docutils literal notranslate"><span class="pre">.C</span></code> extension. For example, the source code for an application called <code class="docutils literal notranslate"><span class="pre">newApp</span></code> would reside is a directory <code class="docutils literal notranslate"><span class="pre">newApp</span></code> and the top level file would be <code class="docutils literal notranslate"><span class="pre">newApp.C</span></code> as shown in the figure below.</p>
+<div class="align-center figure">
+<a class="reference internal image-reference" href="../../_images/DirStruct.png"><img alt="alternate text" src="../../_images/DirStruct.png" style="width: 100px;" /></a>
+</div>
+<p>Additionally, OpenFOAM is divided into a set of pre-compiled libraries that are dynamically linked during compilation of the solvers and utilities. OpenFOAM includes an extensive collection of library functionality covering most aspects engineering flow problems such as physical modeling, boundary conditions, numerics and mesh motion.  Libraries such as those for physical models are supplied as source code so that users may conveniently add their own models to the libraries.</p>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, SimCenter
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+    
+
+  <style>
+         .wy-nav-content { max-width: none; }
+  </style>
+
+
+
+</body>
+</html>

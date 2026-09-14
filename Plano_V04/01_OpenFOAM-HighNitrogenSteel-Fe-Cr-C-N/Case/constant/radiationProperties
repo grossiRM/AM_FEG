@@ -1,0 +1,77 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v1812                                 |
+|   \\  /    A nd           | Web:      www.OpenFOAM.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "constant";
+    object      radiationProperties;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+radiation       on;
+
+radiationModel  laserDTRM;
+
+// Number of flow iterations per radiation iteration
+solverFreq 1;
+
+absorptionEmissionModel localDensityAbsorptionEmission;
+
+localDensityAbsorptionEmissionCoeffs
+{
+	alphaNames (alpha.air_0 alphaMetal);
+	aCoeff (0 1e10);
+	eCoeff (0 0);
+	ECoeff (0 0);
+}
+
+mode	"Gaussian";
+nTheta	203;
+nr 	22;
+
+//focalLaserPosition constant 	(250e-6 250e-6 250e-6);
+
+focalLaserPosition table
+(
+	(0 (300e-6 901.43e-6 525e-6))
+	(0.002 (2100e-6 901.43e-6 525e-6))                                // 900mm/s
+); 
+
+laserDirection constant 	(0 -1 0);
+laserPower			150;   
+sigma				23.4e-6;
+focalLaserRadius		32.76e-6;   // 1.4 * sigma
+
+scatterModel    none;
+
+sootModel       none;
+
+transmissivityModel none;
+//reflectionModel FresnelLaser;
+
+reflectionModel
+(
+	(gas and metal)
+	{
+    		type            FresnelLaser;
+    		epsilon         0.35;     //0.35  (Not here, change in the DTRM file)
+	}
+);
+// ************************************************************************* //
+
+
+
+
+
+
+
+
+
+

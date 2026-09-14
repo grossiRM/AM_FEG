@@ -1,0 +1,26 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  4.0                                   |
+|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "system";
+    object      setFieldsDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+//First step of patching the fields: setting T to 0 everywhere
+defaultFieldValues ( volScalarFieldValue T 0 );
+
+
+//Second step: setting T 1 in only those cells, which are -inside- the box
+regions         ( boxToCell { box (-0.5 -100 -100) (0.5 100 100) ; fieldValues ( volScalarFieldValue T 1 ) ; } );
+
+
+// ************************************************************************* //

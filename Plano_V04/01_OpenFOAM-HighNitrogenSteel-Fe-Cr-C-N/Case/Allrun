@@ -1,0 +1,17 @@
+#!/bin/sh
+cd ${0%/*} || exit 1    # Run from this directory
+
+blockMesh > blockMesh.log 2>&1 # Generate mesh
+
+rm -rf 0
+cp -r 0.orig 0
+
+setFields > setFields.log 2>&1 # Set initial field values
+
+decomposePar > decomposePar.log 2>&1 # Distribute case over the CPU cores
+
+mpirun -np 192 X30Cr15N_Sh -parallel > X30Cr15N.log 2>&1 # Run the simulation
+
+reconstructPar > reconstructPar.log 2>&1 # Reconstruct the distributed data
+
+
