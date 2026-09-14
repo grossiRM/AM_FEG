@@ -1,0 +1,137 @@
+from DeepSDFStruct.local_shapes import LocalShapesSDF
+from DeepSDFStruct.pretrained_models import get_model, PretrainedModels
+from DeepSDFStruct.SDF import SDFfromDeepSDF, _cap_outside_of_unitcube
+from DeepSDFStruct.lattice_structure import LatticeSDFStruct
+from DeepSDFStruct.parametrization import Constant
+from DeepSDFStruct.torch_spline import TorchSpline
+import splinepy
+import torch
+import matplotlib.pyplot as plt
+
+
+def test_deepsdf_evaluation():
+    # Load a pretrained DeepSDF model
+    model = get_model(PretrainedModels.ChiAndCross)
+    sdf = SDFfromDeepSDF(model)
+
+    # Set the latent vector and visualize a slice of the SDF
+    sdf.set_latent_vec(
+        torch.tensor([0.3, 0.3], dtype=torch.float32, device=model.device)
+    )
+
+    out = sdf(
+        torch.tensor(
+            [[0, 0, 0], [0, 1, 0], [0.5, 0.5, 0.5]],
+            dtype=torch.float32,
+            device=model.device,
+        )
+    )
+    print(out)
+
+
+def test_deepsdf_lattice_evaluation():
+    # Load a pretrained DeepSDF model
+    model = get_model(PretrainedModels.AnalyticRoundCross)
+    sdf = SDFfromDeepSDF(model)
+
+    # Define a spline-based deformation field
+    deformation_spline = TorchSpline(
+        splinepy.helpme.create.box(1, 1, 1).bspline, device=model.device
+    )
+
+    # Create the lattice structure with deformation and microtile
+    lattice_struct = LatticeSDFStruct(
+        tiling=(1, 1, 1),
+        microtile=sdf,
+        parametrization=Constant([0.5], device=model.device),
+    )
+
+    out = lattice_struct(
+        torch.tensor(
+            [[0, 0, 0], [0, 1, 0], [0.5, 0.5, 0.5]],
+            dtype=torch.float32,
+            device=model.device,
+        )
+    )
+    fig, axs = plt.subplots(1, 3)
+    lattice_struct.plot_slice(
+        origin=(0, 0.5, 0),
+        normal=(0, 1, 0),
+        ax=axs[0],
+        show_zero_level=True,
+        res=(300, 300),
+        deformation_function=deformation_spline,
+    )
+    print(out)
+
+
+def test_lattice_local_shapes_comparison():
+    # Load a pretrained DeepSDF model
+    model = get_model(PretrainedModels.AnalyticRoundCross)
+    sdf = SDFfromDeepSDF(model)
+
+    # Create the lattice structure with deformation and microtile
+    lattice_struct = LatticeSDFStruct(
+        tiling=(2, 1, 1),
+        microtile=sdf,
+        parametrization=Constant([0.5], device=model.device),
+    )
+
+    test_input_param_domain = torch.tensor(
+        [[0, 0, 0], [0, 1, 0], [0.5, 0.5, 0.5]],
+        dtype=torch.float32,
+        device=model.device,
+    )
+
+    out_latt = lattice_struct(test_input_param_domain)
+
+    local_shape_sdf = LocalShapesSDF(
+        tiling=(2, 1, 1),
+        unit_cell=sdf,
+        parametrization=Constant([0.5], device=model.device),
+        bounds=torch.tensor([[0, 0, 0], [2, 1, 1]]),
+    )
+
+    out_ls = local_shape_sdf(test_input_param_domain)
+
+    torch.testing.assert_close(out_latt, out_ls)
+
+
+def test_cap_outside_unitcube():
+
+    samples = torch.tensor(
+        [
+            [1.1, 0.0, 0.0],
+            [-0.1, 0.0, 0.0],
+            [0.0, 1.1, 0.0],
+            [0.0, -0.1, 0.0],
+            [0.0, 0.0, 1.1],
+            [0.0, 0.0, -0.1],
+            [0.1, 0.1, 0.1],
+            [0.9, 0.9, 0.9],
+            [0.0, 0.0, 0.0],
+        ],
+        dtype=torch.float32,
+    )
+    # true = inside, false = outside
+    labels = [False, False, False, False, False, False, True, True]
+
+    # Initial SDF values: all negative (e.g., "inside")
+    sdf_values = torch.tensor([[-0.5]] * samples.shape[0], dtype=torch.float32)
+
+    capped_sdf = _cap_outside_of_unitcube(samples, sdf_values.clone())
+
+    # Check that the SDF is capped (increased) for points outside the cube
+    for sample, sdf_value, label in zip(samples, capped_sdf, labels):
+        if sdf_value < 1e-10:
+            continue
+        assertion = (sdf_value < 0) == label
+        assert assertion, f"Incorrect capping on valid sample {sample}"
+    assert capped_sdf[-1] < 1e10, "Point on the boundary is wrong"
+
+
+if __name__ == "__main__":
+    test_deepsdf_evaluation()
+    test_lattice_local_shapes_comparison()
+    test_cap_outside_unitcube()
+    test_deepsdf_lattice_evaluation()

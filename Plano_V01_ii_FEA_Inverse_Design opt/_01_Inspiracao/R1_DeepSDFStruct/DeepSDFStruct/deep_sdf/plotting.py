@@ -1,0 +1,164 @@
+"""
+Training Visualization and Logging
+==================================
+
+This module provides utilities for visualizing DeepSDF training progress
+and generating plots of training metrics.
+
+Functions
+---------
+
+plot_logs
+    Plot training loss curves with smoothing and optional learning rate overlay.
+    Useful for monitoring training progress and diagnosing convergence issues.
+
+plot_reconstruction_loss
+    Visualize loss during shape reconstruction, showing how well the model
+    fits to target geometries.
+
+extract_paths
+    Helper for extracting file paths from nested data structures.
+
+running_mean
+    Compute running average for smoothing noisy loss curves.
+
+The module integrates with the workspace utilities to load training logs
+and generate publication-quality plots for analysis and presentation.
+"""
+
+import numpy as np
+import os
+import logging
+import torch
+import pandas as pd
+import matplotlib.pyplot as plt
+
+import DeepSDFStruct.deep_sdf.workspace as ws
+
+logger = logging.getLogger(__name__)
+
+
+def extract_paths(data, current_path=""):
+    paths = []
+
+    if isinstance(data, dict):
+        for key, value in data.items():
+            new_path = f"{current_path}/{key}" if current_path else key
+            paths.extend(extract_paths(value, new_path))
+
+    elif isinstance(data, list):
+        for item in data:
+            paths.extend(extract_paths(item, current_path))
+
+    else:
+        paths.append(f"{current_path}/{data}")
+
+    return paths
+
+
+def running_mean(x, N):
+    cumsum = np.cumsum(np.insert(x, 0, 0))
+    return (cumsum[N:] - cumsum[:-N]) / float(N)
+
+
+def plot_logs(experiment_directory, show_lr=False, ax=None, filename=None):
+
+    logs = torch.load(os.path.join(experiment_directory, ws.logs_filename))
+
+    num_iters = len(logs["loss"])
+    iters_per_epoch = num_iters / logs["epoch"]
+
+    smoothed_loss_41 = running_mean(logs["loss"], 41)
+
+    show_plt = False
+
+    if show_lr:
+        if ax is None:
+            fig, ax = plt.subplots(2, 1)
+            fig.tight_layout()
+            show_plt = True
+    else:
+        if ax is None:
+            fig, ax = plt.subplots()
+            show_plt = True
+        ax = [ax]
+
+    ax[0].plot(
+        np.arange(num_iters) / iters_per_epoch, logs["loss"], "#82c6eb", label="Loss"
+    )
+    ax[0].plot(
+        np.arange(20, num_iters - 20) / iters_per_epoch,
+        smoothed_loss_41,
+        "#2a9edd",
+        label="Loss (Running Mean 41)",
+    )
+    ax[0].set_yscale("log")
+
+    ax[0].set(xlabel="Epoch", ylabel="Loss")
+
+    ax[0].legend()
+
+    if show_lr:
+        combined_lrs = np.array(logs["learning_rate"])
+        ax[1].plot(
+            np.arange(combined_lrs.shape[0]),
+            combined_lrs[:, 0],
+            np.arange(combined_lrs.shape[0]),
+            combined_lrs[:, 1],
+        )
+        ax[1].set(xlabel="Epoch", ylabel="Learning Rate")
+        ax[1].legend(["Decoder", "Latent Vector"])
+
+    for axis in ax:
+        axis.grid()
+    if filename is not None:
+        plt.savefig(filename, bbox_inches="tight")
+        plt.close()
+    elif show_plt:
+        plt.show()
+
+
+def plot_reconstruction_loss(
+    loss_history, iters_per_epoch, filename=None, csv_filename=None
+):
+
+    losses = np.array(loss_history)
+    num_iters = len(losses)
+
+    latest_epoch = num_iters / iters_per_epoch
+    logger.info("latest epoch is {}".format(latest_epoch))
+    logger.info("{} iters per epoch".format(iters_per_epoch))
+
+    smoothed_loss_41 = running_mean(losses, 41)
+
+    epochs = np.arange(num_iters) / iters_per_epoch
+
+    if csv_filename is not None:
+        df = pd.DataFrame(
+            {"iteration": np.arange(num_iters), "epoch": epochs, "loss": losses}
+        )
+
+        # smoothed loss only exists for the valid window
+        df["smoothed_loss_41"] = np.nan
+        df.loc[20 : num_iters - 21, "smoothed_loss_41"] = smoothed_loss_41
+
+        df.to_csv(csv_filename, index=False)
+
+    fig, ax = plt.subplots()
+
+    ax.plot(
+        epochs,
+        losses,
+        "#82c6eb",
+        np.arange(20, num_iters - 20) / iters_per_epoch,
+        smoothed_loss_41,
+        "#2a9edd",
+    )
+
+    ax.set_yscale("log")
+    ax.set(xlabel="Epoch", ylabel="Loss")
+    ax.legend(["Loss", "Loss (Running Mean 41)"])
+    ax.grid()
+
+    if filename is not None:
+        plt.savefig(filename, bbox_inches="tight")

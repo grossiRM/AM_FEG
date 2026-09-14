@@ -1,0 +1,137 @@
+from DeepSDFStruct.pretrained_models import get_model, PretrainedModels
+from DeepSDFStruct.SDF import SDFfromDeepSDF, SDFfromLineMesh, CappedBorderSDF
+from DeepSDFStruct.mesh import (
+    generate_2D_surf_mesh,
+    tetrahedralize_surface,
+    create_3D_mesh,
+    create_2D_mesh,
+    export_surface_mesh,
+    export_sdf_grid_vtk,
+)
+from DeepSDFStruct.lattice_structure import LatticeSDFStruct
+from DeepSDFStruct.parametrization import SplineParametrization
+from DeepSDFStruct.torch_spline import TorchSpline
+import splinepy
+import gustaf as _gus
+import torch
+
+
+def test_deepsdf_lattice_export_3D():
+    # Load a pretrained DeepSDF model
+    model = get_model(PretrainedModels.AnalyticRoundCross)
+    sdf = SDFfromDeepSDF(model)
+    torch.manual_seed(42)
+
+    # Define a spline-based deformation field
+    deformation_spline = TorchSpline(
+        splinepy.helpme.create.box(1.5, 1, 1).bspline, device=model.device
+    )
+    control_points = [
+        [0.3],
+        [0.3],
+        [0.3],
+        [0.3],
+        [0.3],
+        [0.3],
+        [0.3],
+        [0.3],
+        [0.3],
+        [0.3],
+        [0.3],
+        [0.3],
+    ]
+    param_spline = SplineParametrization(
+        splinepy.BSpline(
+            [0, 0, 0], [[0, 1 / 3, 2 / 3, 1], [0, 0.5, 1], [0, 0.5, 1]], control_points
+        ),
+        device=model.device,
+    )
+
+    # Create the lattice structure with deformation and microtile
+    lattice_struct = CappedBorderSDF(
+        LatticeSDFStruct(tiling=[3, 2, 2], microtile=sdf, parametrization=param_spline)
+    )
+    surf_mesh, derivative = create_3D_mesh(
+        lattice_struct,
+        10,
+        differentiate=True,
+        mesh_type="surface",
+        device=model.device,
+        deformation_function=deformation_spline,
+    )
+    export_surface_mesh(
+        "tests/tmp_outputs/mesh_with_derivative.vtk", surf_mesh.to_gus(), derivative
+    )
+    export_sdf_grid_vtk(lattice_struct, "tests/tmp_outputs/sdf.vtk")
+    mesh = surf_mesh.to_gus()
+    _gus.io.meshio.export("tests/tmp_outputs/faces.inp", mesh)
+    _gus.io.meshio.export("tests/tmp_outputs/faces.obj", mesh)
+
+    volumes, _ = tetrahedralize_surface(mesh)
+    _gus.io.mfem.export("tests/tmp_outputs/volumes.mfem", volumes)
+
+    # test other method to export 3D mesh:
+    volume_mesh, derivative_vols = create_3D_mesh(
+        lattice_struct, 10, differentiate=True, mesh_type="volume", device=model.device
+    )
+    _gus.io.meshio.export(
+        fname="tests/tmp_outputs/volumes.inp", mesh=volume_mesh.to_gus()
+    )
+
+
+def test_deepsdf_lattice_export_2D():
+    # Load a pretrained DeepSDF model
+    model = get_model(PretrainedModels.AnalyticRoundCross)
+    sdf = SDFfromDeepSDF(model)
+    torch.manual_seed(42)
+
+    # Define a spline-based deformation field
+    deformation_spline = TorchSpline(
+        splinepy.helpme.create.box(1.5, 1).bspline, device=model.device
+    )
+    control_points = [[0.3], [0.3], [0.3], [0.3], [0.3], [0.3]]
+    param_spline = SplineParametrization(
+        splinepy.BSpline([0, 0], [[0, 1 / 3, 2 / 3, 1], [0, 0.5, 1]], control_points),
+        device=model.device,
+    )
+
+    # Create the lattice structure with deformation and microtile
+    lattice_struct = CappedBorderSDF(
+        LatticeSDFStruct(
+            tiling=[3, 2],
+            microtile=sdf.to2D(axes=[0, 1], offset=0.5),
+            parametrization=param_spline,
+        )
+    )
+
+    surf_mesh, derivative = create_2D_mesh(
+        lattice_struct,
+        10,
+        differentiate=True,
+        mesh_type="surface",
+        device=model.device,
+        deformation_function=deformation_spline,
+    )
+    export_surface_mesh(
+        "tests/tmp_outputs/mesh2D_with_derivative.vtk", surf_mesh.to_gus(), derivative
+    )
+
+
+def test_2D_mesh_export():
+    linemesh = _gus.io.meshio.load("tests/data/example_line_mesh.vtk")
+    linemesh.vertices = linemesh.vertices[:, :2]
+
+    sdf_from_linemesh = SDFfromLineMesh(linemesh, thickness=0.5)
+    mesh = generate_2D_surf_mesh(sdf_from_linemesh, 100)
+    _gus.io.meshio.export("tests/tmp_outputs/triangles.inp", mesh)
+
+    sdf_from_linemesh = SDFfromLineMesh(linemesh, thickness=0.5, smoothness=0.1)
+    mesh = generate_2D_surf_mesh(sdf_from_linemesh, 100)
+    _gus.io.meshio.export("tests/tmp_outputs/triangles_smooth.inp", mesh)
+
+
+if __name__ == "__main__":
+    test_deepsdf_lattice_export_2D()
+    test_deepsdf_lattice_export_3D()
+
+    test_2D_mesh_export()

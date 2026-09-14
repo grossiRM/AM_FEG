@@ -1,0 +1,671 @@
+"""
+SDF Sampling and Dataset Generation
+====================================
+
+This module provides tools for sampling points from SDF representations and
+generating datasets for training neural networks (DeepSDF models). It supports
+various sampling strategies to create well-distributed training data.
+
+Key Features
+------------
+
+Sampling Strategies
+    - Uniform sampling in a bounding box
+    - Surface-focused sampling near the zero level set
+    - Importance sampling based on SDF gradients
+    - Sphere-based sampling patterns
+    - Combined strategies for balanced datasets
+
+Dataset Generation
+    - Batch processing of multiple geometries
+    - Automatic data normalization and standardization
+    - Support for multiple geometry classes
+    - Metadata tracking (version, sampling parameters)
+    - Export to formats compatible with DeepSDF training
+
+The module is designed to generate high-quality training data for implicit
+neural representations, with careful attention to sampling near surfaces
+where accurate reconstruction is most critical.
+
+Classes
+-------
+SampledSDF
+    Container for sampled points and their SDF values, with utilities
+    for splitting by sign and visualization.
+
+DataSetInfo
+    TypedDict for dataset metadata (name, classes, sampling strategy, etc.).
+
+Functions
+---------
+generate_dataset
+    Batch process multiple geometries to create a complete dataset.
+sample_sdf_*
+    Various sampling strategies for different use cases.
+"""
+
+import os
+from functools import partial
+from itertools import starmap
+import multiprocessing
+from dataclasses import dataclass
+
+
+import vtk
+import numpy as np
+import json
+import pathlib
+import typing
+import gustaf as gus
+import trimesh
+from DeepSDFStruct.SDF import SDFfromMesh, SDFBase
+from DeepSDFStruct.mesh import torchSurfMesh
+import DeepSDFStruct
+
+# from analysis.problems.homogenization import computeHomogenizedMaterialProperties
+import splinepy
+import torch
+from collections import defaultdict
+from tqdm import tqdm
+import logging
+import datetime
+from importlib.metadata import version
+
+logger = logging.getLogger(DeepSDFStruct.__name__)
+
+
+class DataSetInfo(typing.TypedDict):
+    """Metadata for a generated SDF dataset.
+
+    Attributes
+    ----------
+    dataset_name : str
+        Unique identifier for the dataset.
+    class_names : list of str
+        Names of geometry classes in the dataset.
+    sampling_strategy : str
+        Description of how points were sampled.
+    date_created : str
+        ISO format timestamp of dataset creation.
+    stds : list of float
+        Standard deviations used for normalization.
+    n_samples : int
+        Number of sample points per geometry.
+    add_surface_samples : bool
+        Whether surface points were included.
+    sdf_struct_version : str
+        Version of DeepSDFStruct used to create the dataset.
+    """
+
+    dataset_name: str
+    class_names: list[str]
+    sampling_strategy: str
+    date_created: str
+    stds: list[float]
+    n_samples: int
+    add_surface_samples: bool
+    sdf_struct_version: str
+
+
+class SphereParameters(typing.TypedDict):
+    """Parameters defining a sampling sphere."""
+
+    cx: float
+    cy: float
+    cz: float
+    r: float
+
+
+@dataclass
+class GeometryInstance:
+    name: str
+    geom: trimesh.Trimesh
+    C: np.ndarray | None
+
+    def __init__(self, name: str, geom: trimesh.Trimesh, C: np.ndarray | None):
+        self.name = name
+        self.geom = geom
+        self.C = C
+
+
+class SampledSDF:
+    """Container for sampled SDF points and their distance values.
+
+    This class stores point samples and their corresponding SDF values,
+    providing utilities for data manipulation, splitting, and visualization.
+
+    Parameters
+    ----------
+    samples : torch.Tensor
+        Point coordinates of shape (N, 3).
+    distances : torch.Tensor
+        SDF values at sample points of shape (N, 1).
+
+    Attributes
+    ----------
+    samples : torch.Tensor
+        The sampled point coordinates.
+    distances : torch.Tensor
+        The SDF distance values.
+
+    Methods
+    -------
+    split_pos_neg()
+        Split into separate datasets for inside (negative) and outside
+        (positive) points.
+    create_gus_plottable()
+        Convert to gustaf Vertices for visualization.
+    stacked
+        Property returning concatenated samples and distances.
+
+    Examples
+    --------
+    >>> import torch
+    >>> from DeepSDFStruct.sampling import SampledSDF
+    >>>
+    >>> points = torch.rand(100, 3)
+    >>> distances = torch.randn(100, 1)
+    >>> sampled = SampledSDF(points, distances)
+    >>>
+    >>> # Split by sign
+    >>> inside, outside = sampled.split_pos_neg()
+    >>> print(f"Inside points: {inside.samples.shape[0]}")
+    >>> print(f"Outside points: {outside.samples.shape[0]}")
+    """
+
+    samples: torch.Tensor
+    distances: torch.Tensor
+
+    def split_pos_neg(self):
+        """Split samples into inside (negative) and outside (positive) points.
+
+        Returns
+        -------
+        pos : SampledSDF
+            Samples with non-negative distances (outside or on surface).
+        neg : SampledSDF
+            Samples with negative distances (inside geometry).
+        """
+        pos_mask = torch.where(self.distances >= 0.0)[0]
+        neg_mask = torch.where(self.distances < 0.0)[0]
+        pos = SampledSDF(
+            samples=self.samples[pos_mask], distances=self.distances[pos_mask]
+        )
+        neg = SampledSDF(
+            samples=self.samples[neg_mask], distances=self.distances[neg_mask]
+        )
+        return pos, neg
+
+    def create_gus_plottable(self):
+        """Create a gustaf Vertices object for visualization.
+
+        Returns
+        -------
+        gustaf.Vertices
+            Vertices with distance values stored as vertex data.
+        """
+        vp = gus.Vertices(vertices=self.samples)
+        vp.vertex_data["distance"] = self.distances
+        return vp
+
+    @property
+    def stacked(self):
+        """Concatenate samples and distances into a single tensor.
+
+        Returns
+        -------
+        torch.Tensor
+            Tensor of shape (N, 4) with [x, y, z, distance] per row.
+        """
+        return torch.hstack((self.samples, self.distances))
+
+    def __init__(self, samples, distances):
+        self.samples = samples
+        self.distances = distances
+
+    def __add__(self, other):
+        """Concatenate two SampledSDF objects.
+
+        Parameters
+        ----------
+        other : SampledSDF
+            Another SampledSDF to concatenate.
+
+        Returns
+        -------
+        SampledSDF
+            Combined dataset with all samples from both objects.
+        """
+        return SampledSDF(
+            samples=torch.vstack((self.samples, other.samples)),
+            distances=torch.vstack((self.distances, other.distances)),
+        )
+
+
+def _process_single_geometry_instance(
+    geom_instance: GeometryInstance,
+    file_name: str,
+    folder_name: pathlib.Path,
+    scale,
+    n_samples,
+    sampling_strategy,
+    add_surface_samples,
+    stds,
+    also_save_vtk,
+    also_save_mesh,
+):
+    fname = folder_name / file_name
+    if not os.path.exists(folder_name):
+        os.makedirs(folder_name, exist_ok=True)
+    if os.path.isfile(fname):
+        logger.warning(f"File {fname} already exists")
+        return
+    mesh = None
+    geom = geom_instance.geom
+    if isinstance(geom, SDFBase):
+        sdf = geom
+    elif isinstance(geom, trimesh.Trimesh):
+        mesh = geom
+        sdf = SDFfromMesh(mesh, scale=scale)
+        if also_save_mesh:
+            mesh.export(fname.with_suffix(".stl"))
+    else:
+        raise NotImplementedError(
+            f"Geometry must be either trimesh or SDFBase, but not {type(geom)}."
+        )
+    sampled_sdf = random_sample_sdf(
+        sdf,
+        bounds=(-1, 1),
+        n_samples=int(n_samples),
+        sampling_strategy=sampling_strategy,
+    )
+    if add_surface_samples:
+        if not isinstance(mesh, trimesh.Trimesh):
+            logger.warning(
+                "Add surface samples was specified, but geometry"
+                f"is not given as a mesh but as {type(geom)}"
+            )
+        else:
+            surf_samples = sample_mesh_surface(
+                sdf, mesh, int(n_samples // 2), stds, device="cpu", dtype=torch.float32
+            )
+            sampled_sdf += surf_samples
+    pos, neg = sampled_sdf.split_pos_neg()
+    if geom_instance.C is not None:
+        np.savez(fname, neg=neg.stacked, pos=pos.stacked, C=geom_instance.C)
+    else:
+        np.savez(fname, neg=neg.stacked, pos=pos.stacked)
+    if also_save_vtk:
+        all_pts = np.vstack([neg.stacked, pos.stacked])
+        save_points_to_vtp(fname.with_suffix(".vtp"), all_pts)
+
+
+class SDFSampler:
+    def __init__(
+        self,
+        outdir,
+        splitdir,
+        dataset_name,
+        stds=[0.05, 0.025],
+        overwrite_existing=False,
+    ) -> None:
+        self.outdir = outdir
+        self.splitdir = splitdir
+        self.dataset_name = dataset_name
+        self.geometries: dict[str, dict[str, GeometryInstance]] = {}
+        self.stds = stds
+        folder_name = pathlib.Path(outdir) / dataset_name
+        if os.path.exists(folder_name):
+            if not overwrite_existing:
+                raise IsADirectoryError(
+                    f"Dataset {folder_name} already exists. "
+                    "Set overwrite_existing to true to overwrite."
+                )
+        else:
+            os.makedirs(folder_name)
+
+    def add_class(
+        self,
+        geom_list: list,
+        class_name: str,
+        n_faces=100,
+        homogenized_c: list[np.ndarray] | None = None,
+    ) -> None:
+        """
+        Adds a geometry to the sampler object. Tries to transform inputs to
+        trimesh data. In case the geometry is a spline object, the n_faces
+        parameter determines the accuracy of the extracted mesh
+        """
+        if homogenized_c is not None:
+            assert len(geom_list) == len(
+                homogenized_c
+            ), f"Length of geometries ({len(geom_list)}) does not match length of homogenized elasticity tensors ({len(homogenized_c)})"
+        instances = {}
+        for i, geom in enumerate(geom_list):
+            instance_name = f"{class_name}_{i:05}"
+            if isinstance(geom, splinepy.Multipatch | splinepy.spline.Spline):
+                geom_gus: gus.Faces = geom.extract.faces(n_faces)
+                tris = gus.create.faces.to_simplex(geom_gus)
+                geom = trimesh.Trimesh(vertices=tris.vertices, faces=tris.faces)
+
+            elif isinstance(geom, torchSurfMesh):
+                geom = geom.to_trimesh()
+
+            if homogenized_c is not None:
+                C = homogenized_c[i]
+            else:
+                C = None
+            instances[instance_name] = GeometryInstance(instance_name, geom, C)
+        self.geometries[class_name] = instances
+
+    def process_geometries(
+        self,
+        sampling_strategy="uniform",
+        n_faces=100,
+        n_samples: int = 100000,
+        add_surface_samples=True,
+        also_save_vtk=False,
+        also_save_mesh=True,
+        scale=True,
+        n_workers=0,
+    ):
+        tasks = []
+
+        for class_name, instance_list in self.geometries.items():
+            logger.info(
+                f"processing geometry list {class_name} with {len(instance_list)} items."
+            )
+
+            folder_name = pathlib.Path(self.outdir) / self.dataset_name / class_name
+
+            func = partial(
+                _process_single_geometry_instance,
+                scale=scale,
+                n_samples=n_samples,
+                sampling_strategy=sampling_strategy,
+                add_surface_samples=add_surface_samples,
+                stds=self.stds,
+                also_save_vtk=also_save_vtk,
+                also_save_mesh=also_save_mesh,
+            )
+
+            tasks = [
+                (geometry, f"{instance_id}.npz", folder_name)
+                for instance_id, geometry in instance_list.items()
+            ]
+            if n_workers > 0:
+                logger.info(f"starting multiprocessing with {n_workers} workers")
+                with multiprocessing.Pool(processes=n_workers) as pool:
+                    pool.starmap(func, tasks)
+            else:
+                logger.info("starting serial processing of geometries")
+                list(starmap(func, tasks))
+
+            logger.info(f"done processing geometry list {class_name}")
+
+        summary = DataSetInfo(
+            dataset_name=self.dataset_name,
+            class_names=list(self.geometries.keys()),
+            sampling_strategy=sampling_strategy,
+            date_created=datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            stds=self.stds,
+            n_samples=n_samples,
+            add_surface_samples=add_surface_samples,
+            sdf_struct_version=version("DeepSDFStruct"),
+        )
+        with open(
+            str(pathlib.Path(self.outdir) / self.dataset_name / "summary.json"), "w"
+        ) as f:
+            json.dump(summary, f, indent=4)
+
+    def get_meshs_from_folder(self, foldername, mesh_type) -> list:
+        """
+        Reads all mesh files of a given type (extension) from a folder using meshio.
+
+        Parameters
+        ----------
+        foldername : str
+            Path to the folder containing the mesh files.
+        mesh_type : str
+            Mesh file extension (e.g., 'vtk', 'obj', 'stl', 'msh', 'xdmf').
+
+        Returns
+        -------
+        list[trimesh.Trimesh]
+            A list of trimesh.Trimesh objects loaded from the folder.
+        """
+        meshes = []
+
+        # Normalize extension (remove dot if present)
+        mesh_type = mesh_type.lstrip(".")
+
+        # Iterate through all files in the folder
+
+        for filename in tqdm(os.listdir(foldername), desc="Loading meshs"):
+            if filename.lower().endswith("." + mesh_type.lower()):
+                filepath = os.path.join(foldername, filename)
+                try:
+                    faces = gus.io.meshio.load(filepath)
+                    trim = trimesh.Trimesh(faces.vertices, faces.elements)
+                    meshes.append(trim)
+                    logger.info(f"Loaded mesh: {filename}")
+                except ValueError as e:
+                    logger.warning(f"Could not read {filename}: {e}")
+
+        if not meshes:
+            print(f"No .{mesh_type} meshes found in {foldername}.")
+
+        return meshes
+
+    def write_json(self, json_fname):
+        json_content = defaultdict(lambda: defaultdict(list))
+        for class_name, instance_list in self.geometries.items():
+            for instance_id, geometry in instance_list.items():
+                file_name = f"{instance_id}"
+                json_content[self.dataset_name][class_name].append(file_name)
+        # json_content = {
+        #     data_info["dataset_name"]: {data_info["class_name"]: split_files}
+        # }
+        json_fname = pathlib.Path(f"{self.splitdir}/{json_fname}")
+        if not json_fname.parent.is_dir():
+            os.makedirs(json_fname.parent)
+        with open(json_fname, "w", encoding="utf-8") as f:
+            json.dump(json_content, f, indent=4)
+
+
+def move(t_mesh, new_center):
+    t_mesh.vertices += new_center - t_mesh.bounding_box.centroid
+
+
+def noisy_sample(t_mesh, std, count):
+    return t_mesh.sample(int(count)) + torch.random.normal(
+        scale=std, size=(int(count), 3)
+    )
+
+
+def random_points(count):
+    """random points in a unit sphere centered at (0, 0, 0)"""
+    points = torch.random.uniform(-1, 1, (int(count * 3), 3))
+    points = points[torch.linalg.norm(points, axis=1) <= 1]
+    if points.shape[0] < count:
+        print("Too little random sampling points. Resampling.......")
+        random_points(count=count, boundary="unit_sphere")
+    elif points.shape[0] > count:
+        return points[torch.random.choice(points.shape[0], count)]
+    else:
+        return points
+
+
+def random_points_cube(count, box_size):
+    """random points in a cube with size box_size centered at (0, 0, 0)"""
+    points = torch.random.uniform(-box_size / 2, box_size / 2, (int(count), 3))
+    return points
+
+
+def random_sample_sdf(
+    sdf,
+    bounds,
+    n_samples,
+    sampling_strategy="uniform",
+    device="cpu",
+    dtype=torch.float32,
+):
+    supported_strategies = ("plane", "spherical_gaussian", "uniform")
+    bounds = torch.tensor(bounds, dtype=dtype, device=device)
+    if sampling_strategy == "plane":
+        samples = torch.random.uniform(
+            bounds[0], bounds[1], (n_samples, 2), device=device, dtype=dtype
+        )
+        samples = torch.hstack((samples, torch.zeros((n_samples, 1))))
+    elif sampling_strategy == "spherical_gaussian":
+        samples = torch.random.randn(n_samples, 3, device=device, dtype=dtype)
+        samples /= torch.linalg.norm(samples, axis=1).reshape(-1, 1)
+        # samples += torch.random.uniform(bounds[0], bounds[1], (n_samples, 3))
+        samples = samples + torch.random.normal(0, 0.01, (n_samples, 3))
+    elif sampling_strategy == "uniform":
+        samples = (
+            torch.rand((n_samples, 3), device=device, dtype=dtype)
+            * (bounds[1] - bounds[0])
+            + bounds[0]
+        )
+    else:
+        raise ValueError(
+            f"Unsupported sampling strategy '{sampling_strategy}'. "
+            f"Supported options are: {supported_strategies}."
+        )
+    distances = sdf(samples)
+    return SampledSDF(samples=samples, distances=distances)
+
+
+def sample_mesh_surface(
+    sdf: SDFBase,
+    mesh: trimesh.Trimesh,
+    n_samples: int,
+    stds: list[float],
+    device="cpu",
+    dtype=torch.float32,
+) -> SampledSDF:
+    """
+    Sample noisy points around a mesh surface and evaluate them with a signed distance function (SDF).
+
+    This function uses trimesh.sample to generate surface samples
+    and perturbs them with Gaussian noise of varying standard deviations,
+    and queries the SDF at those points.
+
+    Args:
+        sdf (SDFBase): A callable SDF object that takes 3D points and returns signed distances.
+        mesh (trimesh.Trimesh): A mesh object containing the vertices and faces.
+        n_samples (int): Number of mesh vertices to sample
+        stds (list[float]): Standard deviations for Gaussian noise added to sampled vertices.
+            - Typical values: [0.05, 0.0015].
+            - Larger values spread samples farther from the surface; smaller values keep them closer.
+        device (str, optional): Torch device to place tensors on (e.g., "cpu" or "cuda").
+        dtype (torch.dtype, optional): Data type for generated tensors (default: torch.float32).
+
+    Returns:
+        SampledSDF: An object containing:
+            - samples (torch.Tensor): The perturbed sample points of shape (n_samples * len(stds), 3).
+            - distances (torch.Tensor): The corresponding SDF values at those sample points.
+    """
+    samples = []
+
+    points, face_idx = trimesh.sample.sample_surface(mesh, n_samples)
+
+    surface_points = torch.tensor(points, dtype=dtype, device=device)
+
+    face_normals = torch.tensor(mesh.face_normals[face_idx], dtype=dtype, device=device)
+
+    for std in stds:
+
+        t = torch.randn(n_samples, 1, device=device, dtype=dtype) * std
+
+        noisy = surface_points + t * face_normals
+        samples.append(noisy)
+
+    queries = torch.vstack(samples)
+    distances = sdf(queries)
+
+    return SampledSDF(samples=queries, distances=distances)
+
+
+def save_points_to_vtp(filename, points):
+    """
+    points: array-like of shape (N,4)
+            columns = [x, y, z, sdf]
+    """
+    if torch.is_tensor(points):
+        points = points.detach().cpu().numpy()
+
+    points = np.asarray(points, dtype=np.float64)
+
+    if points.ndim != 2 or points.shape[1] != 4:
+        raise ValueError(f"Expected points of shape (N,4), got {points.shape}")
+
+    coords = points[:, :3]
+    sdf_vals = points[:, 3]
+
+    vtk_points = vtk.vtkPoints()
+    for pt in coords:
+        vtk_points.InsertNextPoint(float(pt[0]), float(pt[1]), float(pt[2]))
+
+    polydata = vtk.vtkPolyData()
+    polydata.SetPoints(vtk_points)
+
+    verts = vtk.vtkCellArray()
+    for i in range(len(coords)):
+        verts.InsertNextCell(1)
+        verts.InsertCellPoint(i)
+    polydata.SetVerts(verts)
+
+    vtk_array = vtk.vtkDoubleArray()
+    vtk_array.SetName("SDF")
+    for val in sdf_vals:
+        vtk_array.InsertNextValue(float(val))
+    polydata.GetPointData().SetScalars(vtk_array)
+
+    writer = vtk.vtkXMLPolyDataWriter()
+    writer.SetFileName(str(filename))
+    writer.SetInputData(polydata)
+    writer.Write()
+
+    logger.debug(f"Saved {len(coords)} points with SDF to '{filename}'")
+
+
+def augment_by_FFD(
+    meshs: list[trimesh.Trimesh],
+    n_control_points: int = 5,
+    std_dev_fraction: float | None = 0.05,
+    n_transformations: int = 10,
+    save_meshs=False,
+) -> list[trimesh.Trimesh]:
+    """
+    Takes list of meshs and augments the meshs by applying a freeform deformation
+    """
+    new_meshs = []
+
+    for i_mesh, mesh in enumerate(tqdm(meshs, desc="Augmenting meshs")):
+        bbox = mesh.bounds  # shape (2, 3)
+        # Compute approximate spacing between control points along each axis
+        spacing = (bbox[1] - bbox[0]) / (n_control_points - 1)
+        # Use a fraction of spacing (e.g., 15%) as std_dev
+        std_dev_local = std_dev_fraction * spacing
+
+        for i_FFD in range(n_transformations):
+            ffd = splinepy.FFD()
+            ffd.mesh = gus.Faces(mesh.vertices, mesh.faces)
+            ffd.spline.insert_knots(0, np.linspace(0, 1, n_control_points)[1:-1])
+            ffd.spline.insert_knots(1, np.linspace(0, 1, n_control_points)[1:-1])
+            ffd.spline.insert_knots(2, np.linspace(0, 1, n_control_points)[1:-1])
+            ffd.spline.elevate_degrees([0, 1, 2])
+            ffd.spline.control_points += np.random.normal(
+                loc=0.0, scale=std_dev_local, size=ffd.spline.control_points.shape
+            )
+            new_meshs.append(trimesh.Trimesh(ffd.mesh.vertices, ffd.mesh.faces))
+            if save_meshs:
+                save_meshs = True
+
+                # Make sure the directory exists
+                os.makedirs("tmp", exist_ok=True)
+                gus.io.meshio.export(f"tmp/mesh_{i_mesh}_{i_FFD}.obj", ffd.mesh)
+
+    return new_meshs

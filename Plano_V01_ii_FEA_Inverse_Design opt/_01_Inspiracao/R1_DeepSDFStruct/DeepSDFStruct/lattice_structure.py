@@ -1,0 +1,277 @@
+"""
+Lattice Structure Generation
+=============================
+
+This module provides tools for creating periodic lattice structures with
+deformable geometries. Lattices are built by tiling a unit cell (microtile)
+in a regular pattern and applying optional smooth deformations via B-splines.
+
+The main class, LatticeSDFStruct, enables creation of complex microstructured
+materials with spatially-varying properties, useful for applications in:
+- Topology optimization
+- Additive manufacturing
+- Metamaterial design
+- Lightweight structural components
+
+Key Features
+------------
+- Periodic tiling of arbitrary unit cell geometries
+- Smooth deformations via spline-based mapping
+- Spatially-varying parametrization (e.g., varying strut thickness)
+- Support for 2D and 3D lattices
+- Integration with boundary conditions and capping
+"""
+
+import logging
+
+
+import numpy as _np
+import torch as _torch
+
+from splinepy import BSpline as _BSpline
+from .SDF import SDFBase as _SDFBase
+import DeepSDFStruct
+import gustaf as gus
+
+logger = logging.getLogger(DeepSDFStruct.__name__)
+
+
+class LatticeSDFStruct(_SDFBase):
+    """Helper class to facilitate the construction of periodic lattice SDF structures.
+
+    This class creates periodic lattice structures by tiling a unit cell geometry
+    (microtile) in a regular pattern and optionally deforming the result through
+    a spline-based mapping. The microtile can be parametrized to have spatially-
+    varying properties (e.g., thickness that varies across the structure).
+
+    The lattice is defined in parametric space [0,1]^d and can be mapped to
+    physical space through a deformation spline. Boundary conditions can be
+    applied to cap the structure at domain boundaries.
+
+    Parameters
+    ----------
+    tiling : list of int or int, optional
+        Number of repetitions of the microtile in each parametric dimension.
+        If an int, uses the same tiling in all dimensions.
+    microtile : SDFBase, optional
+        The unit cell geometry to be tiled. Should be defined in the
+        unit cube [0,1]^d.
+    parametrization : torch.nn.Module, optional
+        Function that provides spatially-varying parameters for the microtile
+        (e.g., varying strut thickness). Takes parametric coordinates and
+        returns parameter values.
+    cap_border_dict : CapBorderDict, optional
+        Dictionary specifying whether material should be added or removed
+        at domain faces (for capping the structure at boundaries).
+    cap_outside_of_unitcube : bool, default True
+        If True, caps geometry outside the unit cube.
+
+    Attributes
+    ----------
+    tiling : list of int
+        Number of tiles in each dimension.
+    microtile : SDFBase
+        The unit cell geometry.
+    geometric_dim : int
+        Geometric dimensionality (2 or 3).
+    parametric_dimension : int
+        Parametric dimensionality (equal to geometric_dim).
+
+    Notes
+    -----
+    The microtile should ideally have periodic boundary conditions to ensure
+    smooth connections between adjacent tiles. For parametrized microtiles,
+    the microtile must provide:
+    - `evaluation_points`: Points where parameters are evaluated
+    - `para_dim`: Dimensionality of the parameter space
+    - `_set_param`: Method to update parameters
+
+    Examples
+    --------
+    >>> from DeepSDFStruct.lattice_structure import LatticeSDFStruct
+    >>> from DeepSDFStruct.sdf_primitives import SphereSDF
+    >>> from DeepSDFStruct.torch_spline import TorchSpline
+    >>> import torch
+    >>>
+    >>> # Create a simple unit cell
+    >>> unit_cell = SphereSDF(center=[0.5, 0.5, 0.5], radius=0.3)
+    >>>
+    >>> # Create lattice with 3x3x3 tiling
+    >>> lattice = LatticeSDFStruct(
+    ...     tiling=[3, 3, 3],
+    ...     microtile=unit_cell
+    ... )
+    >>>
+    >>> # Query lattice SDF
+    >>> points = torch.rand(100, 3)
+    >>> distances = lattice(points)
+    """
+
+    def __init__(
+        self,
+        tiling: list[int] | int | None = None,
+        microtile: _SDFBase | None = None,
+        parametrization: _torch.nn.Module | None = None,
+        bounds=None,
+    ):
+        """Helper class to facilitate the construction of microstructures.
+
+        Parameters
+        ----------
+        deformation_function : spline
+          Outer function that describes the contour of the microstructured
+          geometry
+        tiling : list of integers
+          microtiles per parametric dimension
+        microtile : SDFBase
+          Representation of the building block defined in the unit cube
+        parametrization_function : Callable (optional)
+          Function to describe spline parameters
+        """
+        if not isinstance(parametrization, _torch.nn.Module):
+            raise TypeError("Parametrization must be of type _Parametrization")
+        super().__init__(parametrization=parametrization)
+        self.geometric_dim = len(tiling)
+        assert (
+            microtile.geometric_dim == self.geometric_dim
+        ), f"dimension of microtile ({self.microtile.geometric_dim}) does not match the tiling ({tiling})"
+        self.tiling = tiling
+        self.microtile = microtile
+        if bounds is not None:
+            if isinstance(bounds, (list, tuple)):
+                bounds = _torch.tensor(
+                    bounds, device=microtile.get_device(), dtype=microtile.get_dtype()
+                )
+        else:
+            match self.geometric_dim:
+                case 2:
+                    bounds = _torch.tensor(
+                        [[0.0, 0.0], [1.0, 1.0]],
+                        device=microtile.get_device(),
+                        dtype=microtile.get_dtype(),
+                    )
+                case 3:
+                    bounds = _torch.tensor(
+                        [[0.0, 0.0, 0.0], [1.0, 1.0, 1.0]],
+                        device=microtile.get_device(),
+                        dtype=microtile.get_dtype(),
+                    )
+                case _:
+                    raise ValueError(
+                        f"Geometric dimension must be either 2 or 3. Got {self.geometric_dim}"
+                    )
+        self.register_buffer("bounds", bounds)
+
+    @property
+    def parametric_dimension(self):
+        return len(self.tiling)
+
+    def _get_domain_bounds(self):
+        return self.get_buffer("bounds")
+
+    def _compute(self, samples: _torch.Tensor):
+        """Function, that - if required - parametrizes the microtiles.
+
+        In order to use said function, the Microtile needs to provide a couple
+        of attributes:
+
+         - evaluation_points - a list of points defined in the unit cube
+           that will be evaluated in the parametrization function to provide
+           the required set of data points
+         - para_dim - dimensionality of the parametrization
+           function and number of design variables for said microtile
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+         : Callable
+          Function that describes the local tile parameters
+        """
+        bounds = self._get_domain_bounds()
+
+        # Mask: True for samples inside the domain bounds
+        inside_mask = (samples >= bounds[0]).all(dim=-1) & (samples <= bounds[1]).all(
+            dim=-1
+        )
+        inside_idx = inside_mask.nonzero(as_tuple=True)[0]
+        inside_samples = samples[inside_idx]
+
+        if self.parametrization is not None:
+            parameters = self.parametrization(inside_samples)
+            self.microtile._set_param(parameters)
+
+        queries_transformed = _torch.zeros_like(inside_samples)
+        for i_dim, t in enumerate(self.tiling):
+            queries_transformed[:, i_dim] = transform(
+                inside_samples[:, i_dim], t, bounds=bounds[:, i_dim]
+            )
+
+        inside_sdf = self.microtile(queries_transformed)
+
+        # For points outside the domain bounds, use their distance to the
+        # boundary (positive) so that FlexiCubes mesh extraction with extended
+        # bounds does not produce artifacts from partial periodic tiles.
+        lower_dist = bounds[0] - samples  # positive when outside (below lower)
+        upper_dist = samples - bounds[1]  # positive when outside (above upper)
+        outside_dist = _torch.max(
+            _torch.max(lower_dist, dim=-1).values, _torch.max(upper_dist, dim=-1).values
+        ).unsqueeze(-1)
+        # if (outside_dist > 0).any():
+        #     logger.warning(
+        #         "Some samples are outside the domain bounds. SDF values for these points will be positive and represent distance to the boundary."
+        #     )
+
+        sdf_values = outside_dist
+        sdf_values[inside_idx] = inside_sdf
+
+        return sdf_values
+
+    def _sanity_check(self):
+        """Check all members and consistency of user data.
+
+        Parameters
+        ----------
+        updated_properties : bool
+          Sets the updated_properties variable to value, which indicates,
+          wheither the microstructure needs to be rebuilt
+
+        Returns
+        -------
+        passes: bool
+        """
+        pass
+
+    def plot_samples(self, samples, sdf_values):
+        vp = gus.Vertices(vertices=samples)
+        vp.vertex_data["distance"] = sdf_values
+        vp.show_options["cmap"] = "coolwarm"
+        gus.show(vp, axes=1)
+
+    def plot_intermesh(self, verts: _torch.Tensor, faces: _torch.Tensor):
+        gus_faces = gus.Faces(vertices=verts.cpu().detach(), faces=faces.cpu().detach())
+        gus.show(gus_faces, axes=1)
+
+
+def constantLatvec(value):
+    return _BSpline([0, 0, 0], [[-1, 1], [-1, 1], [-1, 1]], [value])
+
+
+def transform(x, t, bounds=[0, 1]):
+    # transform x from [bounds[0], bounds[1]] to [-1,1]
+    x_norm = (x - bounds[0]) / (bounds[1] - bounds[0])
+    x_transformed = 2 * _torch.abs(t * x_norm / 2 - _torch.floor((t * x_norm + 1) / 2))
+    return 2 * x_transformed - 1
+
+
+def check_tiling_input(tiling):
+    if isinstance(tiling, list) or isinstance(tiling, tuple):
+        if len(tiling) != 3:
+            raise ValueError("Tiling must be a list of 3 integers")
+        tiling = _np.array(tiling)
+    elif isinstance(tiling, int):
+        tiling = _np.array([tiling, tiling, tiling])
+    else:
+        raise ValueError("Tiling must be a list or an integer")

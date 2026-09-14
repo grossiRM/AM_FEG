@@ -1,0 +1,178 @@
+from DeepSDFStruct.pretrained_models import get_model, PretrainedModels
+from DeepSDFStruct.SDF import SDFfromDeepSDF, CappedBorderSDF
+from DeepSDFStruct.lattice_structure import LatticeSDFStruct
+from DeepSDFStruct.torch_spline import TorchSpline
+from DeepSDFStruct.mesh import create_3D_mesh, torchVolumeMesh
+from DeepSDFStruct.parametrization import SplineParametrization
+from DeepSDFStruct.optimization import MMA, tet_signed_vol, get_mesh_from_torchfem
+from DeepSDFStruct.utils import configure_logging
+import DeepSDFStruct
+import torchfem.materials
+import torchfem.solid
+import splinepy
+import torch
+import logging
+import numpy as np
+
+logger = logging.getLogger(DeepSDFStruct.__name__)
+configure_logging()
+
+
+def test_structural_optimization(num_iter=1):
+    # torch.set_default_device("cuda")
+
+    logger.info("Loading Model")
+    # Load a pretrained DeepSDF model
+    model = get_model(PretrainedModels.AnalyticRoundCross)
+    sdf = SDFfromDeepSDF(model)
+
+    cap_border_dict = {
+        "x0": {"cap": 1, "measure": 0.05},
+        "z1": {"cap": 1, "measure": 0.1},
+    }
+
+    param_spline_sp = splinepy.BSpline(
+        [1, 0, 1],
+        [[0, 0, 0.25, 0.5, 0.75, 1, 1], [0, 1], [0, 0, 0.5, 1, 1]],
+        [[0.3] * model._trained_latent_vectors[0].shape[0]] * 3 * 5,
+    )
+    logger.info("using spline with knot vectors:")
+    logger.info(param_spline_sp.knot_vectors)
+    logger.info(f"and control points: {param_spline_sp.control_points}")
+    tiling = [2, 1, 1]
+
+    param_spline = SplineParametrization(param_spline_sp, device=model.device)
+    # Define a spline-based deformation field
+    deformation_spline = TorchSpline(
+        splinepy.helpme.create.box(2, 1, 1).bspline, device=model.device
+    )
+
+    # Create the lattice structure with deformation and microtile
+    lattice_struct_uncapped = LatticeSDFStruct(
+        tiling=tiling, microtile=sdf, parametrization=param_spline
+    )
+    lattice_struct = CappedBorderSDF(
+        CappedBorderSDF(lattice_struct_uncapped, cap_border_dict)
+    )
+
+    lr = 1e-2
+    param = next(lattice_struct_uncapped.parametrization.parameters())
+    # optimizer = torch.optim.Adam([param], lr=lr)
+    init_vol = None
+    init_compl = None
+    target_vol = 0.5
+
+    bounds = np.zeros(param.shape) + np.array([0.15, 0.75])
+    optimizer = MMA(param, bounds)
+
+    for e in range(num_iter):
+        # log(
+        #     f"Starting iteration with parameters: {lattice_struct.parametrization.parameters.T}"
+        # )
+        # torch.set_default_device("cuda")
+        torch.set_default_dtype(torch.float32)
+        mesh, _ = create_3D_mesh(
+            lattice_struct,
+            10,
+            mesh_type="volume",
+            differentiate=False,
+            device=model.device,
+            deformation_function=deformation_spline,
+        )
+        surf_mesh, _ = create_3D_mesh(
+            lattice_struct,
+            10,
+            mesh_type="surface",
+            differentiate=False,
+            device=model.device,
+            deformation_function=deformation_spline,
+        )
+
+        surf_trimesh = surf_mesh.to_trimesh()
+        assert surf_trimesh.is_watertight
+        if isinstance(mesh, torchVolumeMesh):
+            tets = mesh.volumes
+            verts = mesh.vertices
+        else:
+            raise RuntimeError("Resulting mesh should be volume mesh.")
+
+        # Ensure consistent positive orientation for each tetrahedron.
+        tets_oriented = tets.clone()
+        vols = tet_signed_vol(verts, tets_oriented)
+        neg_mask = vols < 0
+        if neg_mask.any():
+            tets_oriented_neg = tets_oriented[neg_mask]
+            tets_oriented_neg = tets_oriented_neg[:, [0, 2, 1, 3]]
+            tets_oriented[neg_mask] = tets_oriented_neg
+
+        vols = tet_signed_vol(verts, tets_oriented)
+        if init_vol is None:
+            init_vol = vols.sum().item()
+            logger.info(f"Initial volume: {init_vol} on {len(vols)} elements.")
+        eps = 1e-12
+        # Use float64 for the mask to match torchfem's internal precision;
+        # tets with tiny float32-positive volumes can become negative in float64.
+        vols_f64 = tet_signed_vol(verts.to(torch.float64), tets_oriented)
+        mask = vols_f64 > eps
+        vol = vols[mask].sum()
+
+        # keep only the good tets
+        tets_clean = tets_oriented[mask]
+
+        # check how many were removed
+        removed = (~mask).sum()
+        # print(f"Removed {removed} negative volume tets")
+
+        # Create model
+        # torch.set_default_device("cpu")
+        torch.set_default_dtype(torch.float64)
+        verts_tf = verts.to("cpu").to(torch.float64)
+        tets_tf = tets_clean.to("cpu")
+
+        # Material
+        material = torchfem.materials.IsotropicElasticity3D(E=1000.0, nu=0.3)
+
+        cantilever = torchfem.solid.Solid(verts_tf, tets_tf, material)
+
+        # Constrained displacement at left end [Node_IDs, DOFs]
+        left_const_mask = cantilever.nodes[:, 0] < 1e-5
+        cantilever.constraints[left_const_mask, :] = True
+
+        # Load at tip [Node_ID, DOF]
+        top_mask = cantilever.nodes[:, 2] > (1 - 1e-1)
+        top_mask_no_side = top_mask & (~left_const_mask)
+        num_nodes = top_mask_no_side.sum().item()
+        cantilever.forces[top_mask_no_side, 2] = -100.0 / num_nodes
+
+        # log("Starting Simulation")
+        u, f, _, _, _ = cantilever.solve(
+            rtol=1e-2, atol=1e-2, device="cpu", method="spsolve"
+        )
+
+        # Compute sensitivity of compliance w.r.t. element thicknesses
+        compliance = torch.inner(f.ravel(), u.ravel())
+
+        F = compliance
+        G = vol - target_vol
+        dF = torch.autograd.grad(F, param, retain_graph=True)[0]
+        dG = torch.autograd.grad(G, param, retain_graph=True)[0]
+        optimizer.step(F, dF, G, dG)
+
+        # Reset default dtype to float32 for other tests
+        torch.set_default_dtype(torch.float32)
+
+    # torch.autograd.grad(compliance, cantilever.thickness)[0]
+    mesh = get_mesh_from_torchfem(cantilever)
+    mesh.point_data["u"] = u.detach().cpu().numpy()
+    out_file_name = "sim_out.vtk"
+    logger.info(f"Writing Output to {out_file_name}")
+    mesh.save(out_file_name)
+    assert abs(dF.sum().item()) > 1e-8, "Derivative of objective is zero"
+    assert abs(dG.sum().item()) > 1e-8, "Derivative of constraint is zero"
+
+
+if __name__ == "__main__":
+    import warnings
+
+    warnings.filterwarnings("error")
+    test_structural_optimization()

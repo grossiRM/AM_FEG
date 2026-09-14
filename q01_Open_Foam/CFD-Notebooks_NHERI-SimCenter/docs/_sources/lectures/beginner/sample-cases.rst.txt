@@ -1,9 +1,0 @@
-:orphan:
-
-.. _lbl-sample-cases:
-
-
-
-Sample problems
-=================================
-
