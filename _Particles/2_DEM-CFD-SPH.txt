@@ -1,0 +1,11 @@
+Particles
+	https://www.youtube.com/watch?v=FC7z9pDTj3c
+	https://openfoam.org/release/2-3-0/dpm/		Discret particle modeling 
+
+DEM-CFD framework openfoam
+DEM and SPH Analysis
+	https://www.youtube.com/watch?v=IoEx9QjPR7o&t=10s		 
+
+
+Meshfree | Probabilistic 
+
