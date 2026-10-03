@@ -1,0 +1,332 @@
+The \emph{geometrical} Volume-of-Fluid (VoF) method is a method where the 
+interface is represented by a set of simple geometrical entities and advection 
+of the volume fraction is accomplished using geometrical algorithms. When
+the interface is represented as a set of polygons (planes) reconstructed  from
+the volume fraction field, the geometrical VoF algorithm is commonly known as
+the Piecewise Linear Interface Calculation (PLIC) algorithm \citep{deBarPLIC,
+RiderReconstructing1998}. Geometrical operations involving interface planes and
+mesh cells are then performed in order to advect the volume fraction field.
+
+The widespread use of the geometrical Volume of Fluid (VoF) method for
+simulating two-phase flow is mostly based on its intrinsic mass conservation 
+and the ability to automatically deal with topological changes of the fluid 
+interface (no special operations on the discrete interface geometry are required). 
+However, the majority of the developments related to the geometrical VoF method 
+have so far been done on Cartesian and structured meshes because of the high 
+numerical accuracy they provide and the simplicity of the algorithms relying 
+on structured mesh points. Problems involving complex geometrical shapes of the 
+flow domain, usually rely on automatic (fast) algorithms for generation of 
+unstructured meshes. For this reason, the use of unstructured meshes has prevailed 
+in those parts of the industry and research where complex geometry of the flow 
+domain is of importance. However, the use of an accurate geometrical VoF method 
+for such problems was not possible so far; instead VoF methods involving algebraic 
+advection of the volume fraction field are in widespread use. 
+
+This contribution utilises the OpenFOAM{\textsuperscript{\textregistered}}
+software for Computational Continuum Mechanics (CCM) as an implementation
+platform for the geometrical VoF method on arbitrary unstructured meshes. As 
+detailed in the following, the developed geometrical VoF method is based on novel 
+a directionally unsplit advection algorithm using a full discrete Lagrangian flow 
+map on unstructured meshes and thus allowing for accurate direct numerical 
+simulation (DNS) of two-phase flow in domains of arbitrary geometrical complexity. 
+The geometrical VoF algorithm for volume fraction transport is shown to be robust, 
+volume conservative and boundedness preserving; it is fully parallelized using 
+the domain decomposition approach and supports dynamic local Adaptive Mesh 
+Refinement (AMR). The algorithm utilizes a new efficient (quadratic convergent) and 
+accurate iterative flux correction algorithm, that avoids topological changes of 
+the flux polyhedra and inherently ensures mass conservation. To the best of the 
+authors' knowledge, for the first time such a geometrical VoF method is shown to 
+be capable to deal with three dimensional, spatially complex and time varying 
+velocity fields. The obtained volume of symmetric difference interface 
+reconstruction errors are the lowest reported so far in the literature for 
+unstructured meshes. %
+The development of the geometrical VoF algorithm significantly extends the method 
+base of the OpenFOAM library using a modern policy based design for high program 
+code modularity and combinatorial complexity of sub-algorithms for geometrical 
+reconstruction and advection. %
+
+OpenFOAM is a Finite Volume Method (FVM) library for Computational Continuum 
+Mechanics (CCM) written in the C++ programming language. It has a modular structure 
+and provides a possibility of an extensive re-use of the available functionality. 
+A broad choice of mathematical and constitutive models is available, as well as 
+linear solvers, dynamic mesh operations involving both mesh motion and topological
+operations and a comprehensive set of boundary conditions, etc. Details of the 
+development model of OpenFOAM and its relationship to continuum mechanical modeling 
+and simulations of CCM problems are provided by \citet{WellerJasak1998} and
+\citet{Jasak2007}. The benefit of developing the geometrical VoF method for 
+unstructured  meshes using OpenFOAM within an \emph{Open Source} framework is thus 
+two-fold: it provides an implementation with the ability to deal with arbitrarily 
+complex flow domains, and it allows for extensions of the method by coupling with 
+the present functionality of the OpenFOAM library. 
+
+The goal of this work is to develop a geometrical VoF library and a set of
+solver applications that can deal with two-phase flows involving complex
+transport processes (\emph{complex flows}) in complex domains (\emph{complex
+geometry}). The topology of an unstructured meshes dictates our choice of 
+algorithms for both the reconstruction of the interface geometry and the advection 
+of the volume fraction, as well as the underlying geometrical operations. The fluid
+interface is approximated with a piecewise planar geometry which is
+reconstructed using the method of \citet{ParkerYoungsGradient} with an
+alternative accurate parallelized gradient calculation on arbitrary
+unstructured mesh and is able to deal with arbitrary shapes of the mesh cells.
+An Eulerian unsplit geometrical algorithm is chosen for the volume fraction
+advection, based on a full unique Lagrangian trajectories located in the cell
+corner points. We do not consider complicated geometrical operations necessary
+for non-convex congruent polyhedra, which may be constructed by the advection
+algorithm in those parts of the flow domain where insufficient resolution is
+provided. The reason for this decision is that the flow will
+be sufficiently resolved by local dynamic AMR near the interface. 
+ 
+The accuracy of the geometrical VoF method can be enhanced
+when coupled with dynamic local Adaptive Mesh Refinement (AMR)\footnote{From
+this point on in the text, dynamic local AMR will be refered to as AMR since it
+must follow an evolving fluid interface when applied to two-phase flow
+simulations.} (see \citet{KotheUnstructured1996} and \citet{Cerne2002} for
+details). Extensions to higher order geometrical methods such as the Moment-of-Fluid 
+(MoF) method of \citet{AhnShashkov2009} or higher order reconstruction
+(e.g.  Patterned Interface Reconstruction by \citet{MossoPIR2009}) are also
+possible if it proven to be necessary (even with applied AMR). 
+
+
+\subsection{State of the art}
+
+For the sake of clarity, we provide a brief overview of the important aspects
+of the geometrical VoF method as well as the related terminology. Emphasis is
+put upon geometrical VoF methods and related algorithms rather than the algebraic
+VoF method. The interested reader is referred to appropriate references in 
+literature once the scope of this overview is left. 
+
+In order to advect the volume fraction field using geometrical algorithms, the
+geometrical representation of the interface needs to be sufficiently accurate,
+and the geometrical advection algorithm must conserve mass as well as avoid
+artificial deformation of the interface, while keeping the volume fraction
+field bounded between values of $0$ and $1$. 
+
+Since the interface is described as a set of planes (polygons) the orientation 
+of which is given by the volume fraction field, the planes are disconnected
+on cell faces. Discontinuities of the interface planes at cell faces may be 
+described in terms of \emph{geometrical stability} of the interface.
+The discontinuities decrease with the increase of mesh
+resolution and the accuracy of the gradient calculation, used to determine the
+orientation of the plane normals. Furthermore, the orientations of the
+interface planes may be additionally optimized in a way that does not impose
+errors in mass conservation. Such second order convergent reconstruction
+algorithms\footnote{Order of convergence of geometrical algorithms is related
+to convergence of standard geometrical reconstruction or advection errors.}
+result in smaller discontinuities, but involve additional computational
+complexity. However, it is of utmost importance to reduce them to a minimum, 
+since geometrical instabilities generated by the reconstruction algorithm cause
+accumulation of other errors during the advection of the volume fraction field
+\citep{Cerne2002}. 
+
+Geometrical advection algorithms may be sorted into two general categories
+based on the direction splitting: directional (operator) split and un-split
+algorithms. Another division may be defined based on the choice of the mesh
+geometry used to advect the volume fraction field: \emph{face swept}, and
+\emph{Lagrangian re-mapping} algorithms. 
+
+\emph{Operator split algorithms} compute the volume fraction fluxes
+interchangeably in directions orthogonal to the coordinate axes. Such ordering
+is native to a structured mesh, but can be extracted from the unstructured
+hexahedral mesh as well. Since the advection directions are interchanged, each
+advection iteration is followed by a reconstruction step where the interface
+geometry is computed from the updated volume fraction field. 
+
+\emph{Directional un-split algorithms} compute the advection of the volume
+fraction field in a single computational step, using the velocity vectors.
+Hence, a single reconstruction of the interface is required after each
+advection step.
+
+\emph{Face-swept algorithms} rely on flux calculations coming from sweeping or
+\emph{back-tracing} cell faces along the streamlines given by the velocity
+field. A \emph{swept polyhedron} is then adjusted, such that its volume equals
+the value of the volumetric flux coming from the numerical solution of the
+pressure equation in order to assure mass conservation. 
+
+\emph{Eulerian backtracking / Lagrangian re-mapping} algorithms compute the
+increase of the volume fraction on a per-cell basis, by sweeping the mesh
+backward using the velocity field interpolated to the mesh vertices, and
+intersecting the swept mesh with the geometrical data of the interface. After
+this Lagrangian back-tracking step, a re-mapping is executed on the underlying
+Eulerian mesh to set the new volume fraction values.
+
+On unstructured meshes, both face-swept and Lagrangian-Eulerian re-mapping
+algorithms are directionally un-split. Depending on the complexity of the flow
+field, both face-swept and Lagrangian re-mapping algorithms encounter problems in
+geometrical operations because the created polyhedra have non-planar faces and
+may even be non-convex.  
+
+A detailed review of algorithms involving two-phase flow methods on structured
+meshes with emphasis on the geometrical VoF method can be found in a book on
+Direct Numerical Simulations (DNS) of two-phase flows by
+\citet*{Tryggvason2011direct} and in journal contributions by
+\citet{RiderReconstructing1998}, \citet{ScardovelliReview1999},
+\citet{ScardovelliZaleskiEILE2003}, and \citet{Aulisa2007}. For latest 
+developments on Cartesian structured meshes the interested reader is 
+referred to \citep{WeymouthYue2010,MencingerZunAdaptive2011,LeChenadec2013} and 
+the references therein. %
+A detailed numerical analysis of the errors native to the two-dimensional 
+geometrical VoF method on structured meshes is described in \citet{Cerne2002}. 
+So far, main contributions to geometrical algorithms for VoF methods were 
+concentrated on the following aspects: improving interface normal orientation, 
+improving overall mass conservation, reducing under-and-overshoots of the volume 
+fraction, and removing wisps and artificial interface separation. 
+
+In the remainder we present a brief overview of the research efforts involving 
+three-dimensional calculations and geometrical VoF algorithms which support 
+\emph{unstructured} domain discretization, since they are more relevant to our work. 
+
+\citet{Swarz1996} and \citet{KotheUnstructured1996} have produced first (to our
+knowledge) publications referring to a geometrical VoF method with support for
+unstructured meshes. 
+
+\citet{KotheUnstructured1996} emphasize that the motivation behind research
+towards unstructured meshes is based on the requirement for arbitrary
+geometrical complexity of the flow domain. Important aspects of the gradient
+reconstruction for the volume fraction field is presented, resulting in a
+conclusion that a wide cell stencil ($27$ cells for a hexahedral mesh) is
+necessary in order to obtain geometrical stability of the reconstructed
+interface. A valuable note is provided regarding the visualization of results,
+which emphasizes the importance of viewing the actual polygonal geometry of the
+reconstructed interface. Standard visualization practice utilises an
+iso-surface representation of the interface, where the iso-value of the volume
+fraction is prescribed (e.g. to a value of $0.5$). However, the use of
+iso-contours for visualizing interfaces introduces artificial connectivity of
+the interface e.g. for thin filaments. Besides this, the iso-contour hides all
+the errors which are shown when the polygonal geometry is used to visualize the
+interface: \emph{wisps} -- small differences in the volume fraction in
+the bulk of the phases from values $0$ or $1$ that cause reconstructed
+interface geometry to appear (cp.\ \citet{HarvieFletcherStream2000} for
+details) -- or even larger artificially separated parts of the interface 
+may not be shown.
+
+\citet{Swarz1996} developed a second order convergent interface reconstruction
+method for unstructured meshes. The reconstruction is based on optimizing the
+orientation of the plane normals taking into account orientation of the planes
+in the neighbouring interface cells. For the advection of the volume fraction,
+a full Lagrangian back tracing of the finite volume mesh is performed, followed
+by a geometrical intersection with the PLIC geometry, and remapping of the
+volume fraction field onto the Eulerian background mesh. This advection
+algorithm is directionally un-split, it relies completely on the discrete flow
+map and requires a single reconstruction step per advection iteration. 
+
+\citet{KotheVoFchar1999} provides an overview of the geometrical VoF method
+developed for simulating metal casting processes in complex molds. Although a
+casting process is a specialized application of the geometrical VoF method, the
+problems involving the complex domain geometry and physical characteristics of
+the model (e.g. significant differences in values of physical properties
+accross the interface), make the requirements applicable to a general purpose
+geometrical VoF method. They show preliminary results involving reconstruction
+of an interface on an unstructured tetrahedral mesh.
+
+\citet{AhnShashkovGeometricAlg2008} present geometrical algorithms used for the
+reconstruction and advection step operations, with support for polyhedral
+cells. They report successful three-dimensional reconstructions of complex
+geometrical shapes using the method of \citet{ParkerYoungsGradient} and the
+Least-squares-Volume-of-fluid-Interface-Reconstruction-Algorithm (LVIRA)
+developed by \citet{PuckettLvira1991}, both modified in order to support
+polyhedral cell shapes. \citet{ShashkovDyadechkoMoF2005} present three
+dimensional results of the Moment of Fluid (MoF) reconstruction method which
+optimizes the difference in position of the barycentric centre of the truncated
+polyhedron filled with a specific phase. The MoF method can be viewed as an
+extension of the geometrical VoF method by introducing additional information
+in the form of barycentric centres of the truncated cells, which results in a
+more accurate reconstruction algorithm (see
+\citet{AhnShashkovMultiMaterialRec2007} for details on multi-material
+reconstruction on polyhedral meshes). 
+
+\citet{jofreUnstructuredPLIC} show three-dimensional results for both
+geometrical reconstruction and the volume fraction advection on unstructured
+finite volume mesh. The authors present the volume fraction evolution for
+rotational flow using a full discrete Lagrangian flow map. Obtained errors of
+the advection algorithm are close in magnitude to those reported by other
+authors on structured meshes (see \citet{LiovicCVTNA2006} and
+\citet{HernandezLopezPart1Advection2008}). 
+
+\citet{MossoPIR2009} developed the geometrical reconstruction algorithm called
+Patterned Interface Reconstruction (PIR) algorithm. The algorithm is of second
+order of convergence (reconctructs planes exactly) on tetrahedral (and
+triangular) meshes. The interface geometry is initially reconstructed using the
+Youngs PLIC reconstruction algoritm followed by linear or spherical smoothing
+operations based on the geometrical pattern formed by a group of interface
+polygons. Apart from reconstruction algorithm of the MoF method, this is the
+only reconstruction algorithm of second order that directly applies to 
+arbitrary unstructured meshes. 
+
+\citet{LiovicCVTNA2006} have developed a three-dimensional extension of the
+original algorithm of Rider and Kothe on Cartesian meshes with a new accurate
+reconstruction algorithm and an elegant flux divergence correction method used
+for improving the mass conservation. Errors in mass conservation appear because
+of overlaps between the flux polyhedra on common mesh edges. Although the
+algorithm shows good results, it relies on a directed connectivity between
+cells (e.g. \emph{L-shaped stencils}) that requires the use of a structured
+mesh. Additional computation of directed cell connectivity would be
+possible for unstructured \emph{hexahedral} meshes, but not on arbtirary
+unstructured meshes.
+
+\citet{LopezEMFPA2004} show results with a full discrete flow map as a source
+for the back tracing of the flux polyhedra on a two-dimensional Cartesian mesh.
+Local geometrical corrections of the flux polyhedron are applied in order to
+ensure mass conservation. For the reconstruction algorithm, a compact spline
+reconstruction algorithm, with splines based on the centre points of the
+reconstructed interface line segments is used. This work is extended to three
+dimensions, again on a Cartesian mesh, by
+\citet{HernandezLopezPart1Advection2008} and \citet{LopezPart2reconstruction}.
+However, the construction of swept polyhedra is based on edge centres of the
+Cartesian mesh, with velocities interpolated from the staggered velocity field
+mapped to the face centres. Although a notable improvement is achieved, there
+is still a possibility of an overlap between the flux polyhedra around face
+corners. However, the mass conservation is strictly met by an analytical
+approach to adjusting the swept polyhedron volume. 
+
+\citet{IveyMoin2012} have implemented the so-called edge-matched flux polyhedra 
+algorithm in 3D (EMFPA 3D), suggested as an improvement of the unsplit VoF 
+algorithm developed by \citet{HernandezLopezPart1Advection2008}. %
+The algorithm locally approximates a stream tube emanating from the flux face. 
+The flux face is triangulated to construct the flux polyhedron, which then 
+is modified to correct the non-planarity of the faces. Divergence correction, as 
+recommended by \citet{HernandezLopezPart1Advection2008}, relies on an analytical 
+expression for computing the volumes of convex polyhedrons. Adjusting the flux 
+polyhedron introduces overlapping of the flux polyhedra that needs to be further 
+corrected to prevent the volume fraction from over-/undershooting. Unfortunately, 
+a validation of the results showing quantitative information on the standard 
+advection errors are not provided.
+
+%A conservative advection scheme based on the use of edge-matched flux polyhedra to integrate the volume fraction evolution equation on general grids is presented. The algorithm prevents the formation of over/undershoots of the volume fraction by enforcing that the flux polyhedra do not over/underlap, removing the need for unphysical and inaccurate redistribution algorithms.
+
+%The method uses the flux polyhedron construct to locally approximate a stream tube emanating from the flux face, perturbing the definition in order to remove all over-/underlap to prevent the volume fraction from over-/undershooting.
+
+Summarizing, all of the aforementioned algorithms rely on \emph{divergence corrections}  
+in some form to account for the fact that the discrete velocity field used for the
+construction of the flux polyhedron is not divergence free. Besides this issue,
+wisps (see \citet{HarvieFletcherStream2000} for details) are present in the
+volume fraction field, and are subsequently redistributed. 
+
+As for AMR, \citet{PopinetTreeAMR2003} developed a very advanced geometrical VoF method 
+that supports both 2D and 3D calculations with AMR on structured mesh. The
+domain discretization is based on an \emph{octree} data structure which enables
+fast and flexible mesh refinement operations and locally accurate
+differentiation.  Recently, \citet{PopinetBalancedForce2009} has shown that the
+AMR plays a significant role in reducing \emph{parasitic currents}. Details on
+the capabilities and applications of the octree based geometrical VoF method
+are provided by \citet{FusterPopinet2009} and \citet{AgbaglahPopinet2011}. 
+
+Fully unstructured AMR available in OpenFOAM delegates the refinement to each
+cell, and is hence able to deal in a straightforward way with arbitrary cell
+shapes and solution domains of arbitrary geometrical complexity. With fully
+unstructured AMR, a new mesh is created with refined and unrefined regions each
+time a topological operation is executed. The octree based AMR implies a flow
+domain in the shape of a regular hexahedron. %
+
+We have chosen the fully unstructured AMR since it does not restrict us to a 
+specific cell shape (allows automatic mesh generation of complex solution 
+domains) and it is already a part of the OpenFOAM library, which means it can 
+be coupled to other dynamic mesh functionality (mesh motion, mesh deformation, 
+sliding interfaces, moving reference frames, etc.). 
+
+In the following section the governing equations of the flow are described.
+Geometrical operations required by the unstructured meshes and their use in the
+reconstruction and advection step of the method are presented in the third
+section. In the fourth section the coupling between the numerical solution of
+the governing equations and the geometrical evolution of the volume fraction is
+set out. Results and discussions are presented in the two final sections.

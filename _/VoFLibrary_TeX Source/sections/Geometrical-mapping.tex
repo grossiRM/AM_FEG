@@ -1,0 +1,74 @@
+Although the geometrical VoF algorithm supports arbitrary cell shapes, the mesh
+topology dictates the concrete strategy and conceptual approach (i.e.\ type of
+topological operations) for mesh refinement. We are applying local dynamic AMR
+to increase the solution accuracy especially in the vicinity of interfaces, in
+particular for the coupling between the geometrical algorithm and the flow
+solution. The algorithm for local dynamic AMR in OpenFOAM is developed on the
+basis of the unstructured \emph{hexahedral} mesh: it is based on a \emph{fully
+unstructured mesh refinement} procedure. Fully unstructured mesh refinement has
+the advantage to deal with flow domains of arbitrary geometrical complexity,
+since the topological operations on the mesh are done directly, changing the
+overall mesh connectivity information. However, since the connectivity
+information is changed by the topological operation, the mesh data structures
+need to be modified in order to store the new connectivity produced by the
+refinement cycle.  
+
+If the topological operation introduces a production of mesh data, the capacity
+of the data structures needs to be extended. This involves re-allocating memory
+and extending the capacity of the data structures, which sets a computational
+price to the flexibility in dealing with arbitrary complex geometries. Even so,
+the mesh refinement engine in OpenFOAM, together with the mapping of all
+intensive properties, takes up only a small fraction of the overall time
+involved in the flow solution.
+
+The refinement cycle consists of two sub-cycles which may be executed,
+depending on the refinement criteria: refinement and un-refinement sub-cycle.
+If both sub-cycles are executed, the mesh information from the beginning of the
+refinement cycle is lost in between the sub-cycle execution. Removal of
+intermediate information makes it impossible to map the mesh modified by two
+subsequent refinement cycles to the initial un-refined mesh to which the
+interface geometry maps. The obstructed mapping renders the refinement
+procedure unusable together with the geometrical transport algorithm. For this
+purpose, we have extended the dynamic mesh capability to store the connectivity
+information relative to the unmodified mesh state at the beginning of the
+refinement cycle. This further enables the execution of a \emph{geometrical
+mapping algorithm} for the volume fraction field described by Algorithm
+\ref{alg:geometrical-mapping}. 
+
+\begin{algorithm}[H]
+    \centering
+    \caption{Geometrical mapping algorithm for the volume fraction field}
+    \label{alg:geometrical-mapping}
+
+    {\small
+      \begin{algorithmic}
+        \State initialize the absolute cell map 
+        \If{cells to be refined exist}
+           \State mark mesh as refined
+            \State refine mesh 
+            \State absolute cell map = current cell map
+        \EndIf
+        \If{cells to be unrefined exist}
+           \State mark mesh as unrefined 
+           \State copy the absolute cell map 
+           \State un-refine mesh 
+        \EndIf
+        \If {mesh is refined and unrefined}
+            \For{current cell map} 
+               \State absolute cell map [cell] = absolute cell map[current cell map[cell]]
+            \EndFor
+        \ElsIf{mesh is unrefined}
+            \State absolute cell map = current cell map
+        \EndIf
+        \For{absolute cell map}
+            \State intersection = intersect (interface planes [absolute cell map [cell]], cell) 
+            \State volume fraction [cell] = intersection / cell volume 
+        \EndFor
+      \end{algorithmic}
+    }
+\end{algorithm}
+
+The interested reader is directed to our forthcoming publication of the authors for details
+regarding the description of the unstructured mesh topology in OpenFOAM and its
+reflection onto the geometrical mapping algorithm for the volume fraction field
+\citep*{MaricVoFoamMapping2013}.

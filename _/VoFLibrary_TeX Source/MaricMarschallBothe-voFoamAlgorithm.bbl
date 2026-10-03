@@ -1,0 +1,236 @@
+\begin{thebibliography}{42}
+\expandafter\ifx\csname natexlab\endcsname\relax\def\natexlab#1{#1}\fi
+\expandafter\ifx\csname url\endcsname\relax
+  \def\url#1{\texttt{#1}}\fi
+\expandafter\ifx\csname urlprefix\endcsname\relax\def\urlprefix{URL }\fi
+
+\bibitem[{Agbaglah et~al.(2011)Agbaglah, Delaux, Fuster, Hoepffner, Josserand,
+  Popinet, Ray, Scardovelli, and Zaleski}]{AgbaglahPopinet2011}
+Agbaglah, G., Delaux, S., Fuster, D., Hoepffner, J., Josserand, C., Popinet,
+  S., Ray, P., Scardovelli, R., Zaleski, S., 2011. {{P}arallel simulation of
+  multiphase flows using octree adaptivity and the Volume-Of-Fluid method}.
+  Comptes Rendus Mecanique 339~(2-3), 194 -- 207, high Performance Computing.
+
+\bibitem[{Ahn and Shashkov(2008)}]{AhnShashkovGeometricAlg2008}
+Ahn, H., Shashkov, M., 2008. {G}eometric {A}lgorithms for 3d {I}nterface
+  {R}econstruction. In: Brewer, M.~L., Marcum, D. (Eds.), {P}roceedings of the
+  16th {I}nternational {M}eshing {R}oundtable. Springer Berlin Heidelberg, pp.
+  405--422.
+
+\bibitem[{Ahn and Shashkov(2007)}]{AhnShashkovMultiMaterialRec2007}
+Ahn, H.~T., Shashkov, M., 2007. {{M}ulti-material interface reconstruction on
+  generalized polyhedral meshes}. J. Comput. Phys. 226~(2), 2096 -- 2132.
+
+\bibitem[{Ahn and Shashkov(2009)}]{AhnShashkov2009}
+Ahn, H.~T., Shashkov, M., 2009. {{A}daptive Moment-Of-Fluid method}. J. Comput.
+  Phys. 228~(8), 2792 -- 2821.
+
+\bibitem[{Aulisa et~al.(2007)Aulisa, Manservisi, Scardovelli, and
+  Zaleski}]{Aulisa2007}
+Aulisa, E., Manservisi, S., Scardovelli, R., Zaleski, S., 2007. {{I}nterface
+  reconstruction with least-squares fit and split advection in
+  three-dimensional Cartesian geometry}. J. Comput. Phys. 225~(2), 2301 --
+  2319.
+
+\bibitem[{Brent(1971)}]{BrentAlgorithm}
+Brent, R.~P., 1971. {A}n algorithm with guaranteed convergence for finding a
+  zero of a function. Computer J. 14, 422--425.
+
+\bibitem[{Chenadec and Pitsch(2013)}]{LeChenadec2013}
+Chenadec, V.~L., Pitsch, H., 2013. {A 3D unsplit forward/backward
+  Volume-Of-Fluid approach and coupling to the Level Set Method}. J. Comput.
+  Phys. 233~(0), 10--33.
+
+\bibitem[{Correa et~al.(2011)Correa, Hero, and Ma}]{IEEE-gradComparison}
+Correa, C., Hero, R., Ma, K.-L., march 2011. {{A} comparison of gradient
+  estimation methods for volume rendering on unstructured meshes}.
+  Visualization and Computer Graphics, IEEE Transactions on 17~(3), 305 --319.
+
+\bibitem[{De~Berg et~al.(2008)De~Berg, Cheong, and van Kreveld}]{DeBerg2008CG}
+De~Berg, M., Cheong, O., van Kreveld, M., 2008. {{C}omputational Geometry:
+  Algorithms and Applications}. Springer.
+
+\bibitem[{DeBar(1974)}]{deBarPLIC}
+DeBar, R., 1974. {{F}undamentals of the KRAKEN code. [{E}ulerian hydrodynamics
+  code for compressible nonviscous flow of several fluids in two-dimensional
+  (axially symmetric) region]}. Tech. rep., California Univ., Livermore (USA).
+  Lawrence Livermore Lab.
+
+\bibitem[{Dyadechko and Shashkov(2005)}]{ShashkovDyadechkoMoF2005}
+Dyadechko, V., Shashkov, M., 2005. {{M}oment-Of-Fluid interface
+  reconstruction}. Tech. rep., Los Alamos National Laboratory, Oct 2005.
+  Available online athttp://math.lanl.gov/˜vdyadechko/doc/2005-mof.pdf.
+
+\bibitem[{Fuster et~al.(2009)Fuster, Agbaglah, Josserand, Popinet, and
+  Zaleski}]{FusterPopinet2009}
+Fuster, D., Agbaglah, G., Josserand, C., Popinet, S., Zaleski, S., 2009.
+  {N}umerical simulation of droplets, bubbles and waves: state of the art.
+  Fluid Dynamics Research 41~(6), 065001.
+
+\bibitem[{Gabriel et~al.(2004)Gabriel, Fagg, Bosilca, Angskun, Dongarra,
+  Squyres, Sahay, Kambadur, Barrett, Lumsdaine, Castain, Daniel, Graham, and
+  Woodall}]{OpenMPI}
+Gabriel, E., Fagg, G.~E., Bosilca, G., Angskun, T., Dongarra, J.~J., Squyres,
+  J.~M., Sahay, V., Kambadur, P., Barrett, B., Lumsdaine, A., Castain, R.~H.,
+  Daniel, D.~J., Graham, R.~L., Woodall, T.~S., September 2004. {O}pen {MPI}:
+  {G}oals, {C}oncept, and {D}esign of a {N}ext {G}eneration {MPI}
+  implementation. In: {P}roceedings, 11th {E}uropean PVM/MPI {U}sers' {G}roup
+  {M}eeting. Budapest, Hungary, pp. 97--104.
+
+\bibitem[{Harvie and Fletcher(2000)}]{HarvieFletcherStream2000}
+Harvie, D. J.~E., Fletcher, D.~F., 2000. {{A} new {V}olume of {F}luid advection
+  algorithm: The {S}tream {S}cheme}. J. Comput. Phys. 162~(1), 1 -- 32.
+
+\bibitem[{Hern\'{a}ndez et~al.(2008)Hern\'{a}ndez, L\'{o}pez, G\'{o}mez, Zanzi,
+  and Faura}]{HernandezLopezPart1Advection2008}
+Hern\'{a}ndez, J., L\'{o}pez, J., G\'{o}mez, P., Zanzi, C., Faura, F., 2008.
+  {{A} new Volume Of Fluid method in three dimensions: {P}art {I}:
+  Multidimensional advection method with face-matched flux polyhedra}. Int. J.
+  Numer. Meth. Fluids 58~(8), 897--921.
+
+\bibitem[{Ivey and Moin(2012)}]{IveyMoin2012}
+Ivey, C., Moin, P., 2012. {Conservative Volume Of Fluid advection method on
+  unstructured grids in three dimensions}. Center for Turbulence Research
+  Annual Research Briefs, 179-192.
+
+\bibitem[{Jasak et~al.(2007)Jasak, Jemcov, and \v{Z}. Tukovi\'{c}}]{Jasak2007}
+Jasak, H., Jemcov, A., \v{Z}. Tukovi\'{c}, September 19-21 2007. {OpenFOAM: A
+  C++ library for complex physics simulations}. In: International Workshop on
+  Coupled Methods in Numerical Dynamics IUC, Dubrovnik, Croatia.
+
+\bibitem[{J\'{o}fre et~al.(2010)J\'{o}fre, Lehmkuhl, Castro, and
+  Oliva}]{jofreUnstructuredPLIC}
+J\'{o}fre, L., Lehmkuhl, O., Castro, J., Oliva, A., 2010. {{A} PLIC-VOF
+  implementation on parallel 3D unstructured meshes}. In: V European Conference
+  on Computational Fluid Dynamics, ECCOMAS.
+
+\bibitem[{Kothe et~al.(1996)Kothe, Rider, Mosso, Brock, and
+  Hochstein}]{KotheUnstructured1996}
+Kothe, D.~B., Rider, W., Mosso, S.~J., Brock, J.~S., Hochstein, J.~I., 1996.
+  {{V}olume {T}racking of interfaces having surface tension in two and three
+  dimensions}. In: AIAA Meeting Proceedings 1996, AIAA Paper 96-0859. American
+  Institute of Aeronautics and Astronautics.
+
+\bibitem[{Kothe et~al.(1999)Kothe, Williams, Lam, Korzekwa, and
+  Tubesing}]{KotheVoFchar1999}
+Kothe, D.~B., Williams, M.~W., Lam, K.~L., Korzekwa, D.~R., Tubesing, P.~K.,
+  1999. {{A} second-order accurate, linearity-preserving {V}olume {T}racking
+  algorithm for free surface flows on 3-D unstructured meshes}. In: {I}n
+  {P}roceedings of the 3rd ASME/JSME. pp. 99--7109.
+
+\bibitem[{Liovi\'{c} et~al.(2006)Liovi\'{c}, Rudman, Liow, Lakehal, and
+  Kothe}]{LiovicCVTNA2006}
+Liovi\'{c}, P., Rudman, M., Liow, J.-L., Lakehal, D., Kothe, D., 2006. {{A} 3D
+  unsplit-advection volume tracking algorithm with planarity-preserving
+  interface reconstruction}. Computers \& Fluids 35~(10), 1011 -- 1032.
+
+\bibitem[{L\'{o}pez et~al.(2004)L\'{o}pez, Hern\'{a}ndez, G\'{o}mez, and
+  Faura}]{LopezEMFPA2004}
+L\'{o}pez, J., Hern\'{a}ndez, J., G\'{o}mez, P., Faura, F., 2004. {{A} Volume
+  Of Fluid method based on multidimensional advection and spline interface
+  reconstruction}. Journal of Computational Physics 195~(2), 718 -- 742.
+
+\bibitem[{L\'{o}pez et~al.(2008)L\'{o}pez, Zanzi, G\'{o}mez, Faura, and
+  Hern\'{a}ndez}]{LopezPart2reconstruction}
+L\'{o}pez, J., Zanzi, C., G\'{o}mez, P., Faura, F., Hern\'{a}ndez, J., 2008.
+  {{A} new Volume Of Fluid method in three dimensions - {P}art II:
+  {P}iecewise-planar interface reconstruction with cubic-Bezier fit}. Int. J.
+  Numer. Meth. Fluids 58~(8), 923--944.
+
+\bibitem[{Mari\'{c} et~al.(2013)Mari\'{c}, Marschall, and
+  Bothe}]{MaricVoFoamMapping2013}
+Mari\'{c}, T., Marschall, H., Bothe, D., May 2013. {{O}n the Adaptive Mesh
+  Refinement for a 3D geometrical {V}olume of {F}luid transport algorithm on
+  unstructured meshes using OpenFOAM}. In: {P}roceedings, {I}nternational
+  {C}onference on {M}ultiphase {F}lows (ICMF). Jeju, Republic of Korea.
+
+\bibitem[{Mavriplis(2003)}]{lsq-revisiting}
+Mavriplis, D.~J., 2003. {{R}evisiting the least-squares procedure for gradient
+  reconstruction on unstructured meshes}. Tech. rep., National Institute of
+  Aerospace, Hampton, Virginia.
+
+\bibitem[{Mencinger and \v{Z}un(2011)}]{MencingerZunAdaptive2011}
+Mencinger, J., \v{Z}un, I., 2011. {{A} PLIC-VOF method suited for adaptive
+  moving grids}. J. Comput. Phys. 230~(3), 644 -- 663.
+
+\bibitem[{Mosso et~al.(2009)Mosso, Garasi, and Drake}]{MossoPIR2009}
+Mosso, S., Garasi, C., Drake, R., 2009. {{A} smoothed two- and
+  three-dimensional interface reconstruction method}. Computing and
+  Visualization in Science 12, 365--381.
+
+\bibitem[{Mosso et~al.(1996)Mosso, Swartz, Kothe, and Ferrell}]{Swarz1996}
+Mosso, S.~J., Swartz, B.~K., Kothe, D.~B., Ferrell, R.~C., 1996. {{A} parallel,
+  {V}olume-{T}racking algorithm for unstructured meshes}. In: {P}roceedings of
+  {P}arallel CFD 96'.
+
+\bibitem[{Noh and Woodward(1976)}]{NohWoodwardSLIC1976}
+Noh, W., Woodward, P., 1976. Slic ({S}imple {L}ine {I}nterface {C}alculation).
+  In: van~de Vooren, A., Zandbergen, P. (Eds.), {P}roceedings of the {F}ifth
+  {I}nternational {C}onference on {N}umerical {M}ethods in Fluid Dynamics June
+  28 – July 2, 1976 Twente University, Enschede. Vol.~59 of Lecture Notes in
+  Physics. Springer Berlin / Heidelberg, pp. 330--340.
+
+\bibitem[{Parker and Youngs(1992)}]{ParkerYoungsGradient}
+Parker, B., Youngs, D., 1992. {{T}wo and three dimensional {E}ulerian
+  simulation of fluid flow with material interfaces}. Tech. rep., {Tech. Report
+  01/92, UK Atomic Weapons Establishment}.
+
+\bibitem[{Popinet(2003)}]{PopinetTreeAMR2003}
+Popinet, S., 2003. {{G}erris: A tree-based adaptive solver for the
+  incompressible {E}uler equations in complex geometries}. J. Comput. Phys.
+  190~(2), 572 -- 600.
+
+\bibitem[{Popinet(2009)}]{PopinetBalancedForce2009}
+Popinet, S., 2009. {{A}n accurate adaptive solver for surface-tension-driven
+  interfacial flows}. J. Comput. Phys. 228~(16), 5838 -- 5866.
+
+\bibitem[{Puckett(1991)}]{PuckettLvira1991}
+Puckett, E.~G., 1991. {{A} Volume-Of-Fluid Interface Tracking algorithm with
+  applications to computing shock wave refraction}. In: {P}roceedings of the
+  {F}ourth {I}nternational {S}ymposium on {C}omputational Fluid Dynamics.
+
+\bibitem[{Rider and Kothe(1998)}]{RiderReconstructing1998}
+Rider, W.~J., Kothe, D.~B., 1998. {{R}econstructing volume tracking}. J.
+  Comput. Phys. 141~(2), 112 -- 152.
+
+\bibitem[{Scardovelli and Zaleski(1999)}]{ScardovelliReview1999}
+Scardovelli, R., Zaleski, S., 1999. {{D}irect numerical simulation of
+  free-surface and interfacial flow}. Annu. Rev. Fluid. Mech. 31~(1), 567--603.
+
+\bibitem[{Scardovelli and Zaleski(2000)}]{ScardovelliAnalytical2000}
+Scardovelli, R., Zaleski, S., 2000. {{A}nalytical relations connecting linear
+  interfaces and volume fractions in rectangular grids}. J. Comput. Phys.
+  164~(1), 228 -- 237.
+
+\bibitem[{Scardovelli and Zaleski(2003)}]{ScardovelliZaleskiEILE2003}
+Scardovelli, R., Zaleski, S., 2003. {{I}nterface reconstruction with
+  least-square fit and split {E}ulerian-{L}agrangian advection}. Int. J. Numer.
+  Meth. Fluids 41~(3), 251--274.
+
+\bibitem[{Schneider and Eberly(2002)}]{SchneiderGTC}
+Schneider, P.~J., Eberly, D., 2002. {G}eometric {T}ools for {C}omputer
+  {G}raphics. Elsevier Science Inc., New York, NY, USA.
+
+\bibitem[{Tryggvason et~al.(2011)Tryggvason, Scardovelli, and
+  Zaleski}]{Tryggvason2011direct}
+Tryggvason, G., Scardovelli, R., Zaleski, S., 2011. {D}irect {N}umerical
+  {S}imulations of {G}as-{L}iquid {M}ultiphase {F}lows. Cambridge University
+  Press.
+
+\bibitem[{\v{C}erne et~al.(2002)\v{C}erne, Petelin, and Tiselj}]{Cerne2002}
+\v{C}erne, G., Petelin, S., Tiselj, I., 2002. {{N}umerical errors of the
+  Volume-Of-Fluid interface tracking algorithm}. Int. J. Numer. Meth. Fluids
+  38~(4), 329--350.
+
+\bibitem[{Weller et~al.(1998)Weller, Tabor, Jasak, and
+  Fureby}]{WellerJasak1998}
+Weller, H.~G., Tabor, G., Jasak, H., Fureby, C., 1998. {{A} tensorial approach
+  to Computational Continuum Mechanics using object oriented techniques}.
+  Comput. Phys. 12, 620--631.
+
+\bibitem[{Weymouth and Yue(2010)}]{WeymouthYue2010}
+Weymouth, G., Yue, D., 2010. {Conservative Volume-Of-Fluid method for
+  free-surface simulations on Cartesian grids}. J. Comput. Phys. 229~(8),
+  2853--2865.
+
+\end{thebibliography}

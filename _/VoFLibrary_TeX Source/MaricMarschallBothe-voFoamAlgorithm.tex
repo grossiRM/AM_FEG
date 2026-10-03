@@ -1,0 +1,165 @@
+%-----------------------------------------------------------------------
+% Beginning of article.tex
+%-----------------------------------------------------------------------
+%
+% AMS-LaTeX 1.2 sample file for book proceedings, based on amsproc.cls.
+%
+% Replace amsproc by the documentclass for the target series, e.g. pspum-l.
+%
+\documentclass[a4paper,twoside]{amsproc}%,draft
+
+%provide dep-file for submission to arxiv .org
+\usepackage{snapshot}
+%\usepackage{tikz}
+%  \usetikzlibrary{external}
+%  \tikzexternalize % activate!
+
+
+\usepackage[a4paper,text={165mm,255mm},centering,headsep=5mm,footskip=10mm]{geometry}
+
+\numberwithin{equation}{section}
+
+%    Absolute value notation
+\newcommand{\abs}[1]{\lvert#1\rvert}
+
+\usepackage{graphicx}
+  \graphicspath{{./figures/}}
+
+\usepackage{natbib}
+
+\usepackage{amssymb}
+
+\usepackage{tensorNotation}
+\usepackage{algpseudocode}
+\usepackage{algorithm}
+\usepackage{setspace}
+\usepackage{pgfplots}
+%\usepackage[%
+%    implicit=false,
+%    colorlinks=true,pdfstartview=FitV,%
+%	  linkcolor=black,citecolor=black,%
+%	  urlcolor=black]%
+%	{hyperref}
+
+%-- tabulars and lists
+\usepackage{array} %Extending the array and tabular environments.
+\usepackage{multirow} %Creates tabular cells spanning multiple rows
+\usepackage{rotating} %Rotation tools, including rotated full-page floats.
+\usepackage{slashbox} %Draw an oblique (slash) line in a `tabular' column in LaTeX.
+\usepackage{expdlist} %extension of list environment / breaks a list (for example, to interpose a comment) using \listpart{text}
+\usepackage{enumitem} %Control layout of itemize, enumerate, description.
+  \def\dscbasicfont{\normalfont\sffamily}
+    %\fontfamily{\familydefault}\fontseries{\seriesdefault}\itshape\selectfont
+  \renewcommand*{\descriptionlabel}[1]{\hspace\labelsep\normalfont\sffamily #1}
+  \setdescription{font=\dscbasicfont}%\mdseries\itshape%\rmfamily
+	%\setlist{noitemsep}	%normaler Abstand bei Listen zw. item
+\usepackage[olditem,oldenum]{paralist} %Enumerate and itemize within paragraphs. %Use: Defines a compactitem environment
+  \setlength{\plitemsep}{0.5em}
+\usepackage{tabularx} %Tabulars with adjustable-width columns.
+\usepackage{bigstrut}
+\usepackage{longtable} %Allow tables to flow over page boundaries.
+\usepackage{threeparttable} %Tables with captions and notes all the same width.
+  \def\TPTtagStyle#1{(#1)}
+\usepackage{booktabs} %enhances the quality of tables / behind-the-scenes optimisation
+\usepackage{amsmath}
+  \DeclareMathOperator{\sgn}{sgn}
+
+\usepackage{ragged2e}
+\usepackage{caption}
+\usepackage[size=footnotesize]{subcaption}
+	\captionsetup[subfloat]{%
+	   margin = 10pt,
+	   font = {small,rm},
+	   labelfont = {small,bf},
+	   format = default, %or 'hang'#
+	   textformat = period, %tailing period after caption text
+	   indention = 0em,  %margin for caption
+	   labelsep = space, %period, space, quad, newline
+	   justification = RaggedRight, % justified, centering
+	   singlelinecheck = true, % false (true=always center for a single line)
+	   position = bottom, %top
+	   labelformat = parens % simple, empty % style of labeling
+	 }
+  \captionsetup{font=small, %
+                labelfont=bf, %
+                labelformat=simple, %removes tailing dot in float ref
+	              textformat = period, %tailing period after caption text
+                justification=raggedright, %
+                singlelinecheck=true, %
+                format=hang, %
+                width=0.8\textwidth %
+               }
+
+
+
+
+\begin{document}
+
+\title[voFoam -- geometrical unsplit VoF algorithm on unstructered meshes]{voFoam -- A geometrical Volume of Fluid algorithm on arbitrary unstructured meshes with local dynamic adaptive mesh refinement using OpenFOAM}
+
+\author{Tomislav Mari\'{c}}
+\address{Mathematical Modeling and Analysis Group, Center of Smart Interfaces, Technische \mbox{Universit{\"a}t} Darmstadt, Germany}
+\email{maric@csi.tu-darmstadt.de}
+\thanks{The authors hereby gratefully acknowledge the financial support by the German Research Foundation (DFG) and the German Council of Science and Humanities, in the framework of the DFG Cluster of Excellence EXC 259.}
+
+\author{Holger Marschall}
+\address{Mathematical Modeling and Analysis Group, Center of Smart Interfaces, Technische \mbox{Universit{\"a}t} Darmstadt, Germany}
+\email{marschall@csi.tu-darmstadt.de}
+
+\author{Dieter Bothe}
+\address{Mathematical Modeling and Analysis Group, Center of Smart Interfaces, Technische \mbox{Universit{\"a}t} Darmstadt, Germany}
+\email{bothe@csi.tu-darmstadt.de}
+
+%    General info
+\subjclass{flu-dyn}
+\date{May 14, 2013.}
+
+
+%\dedicatory{This paper is dedicated to our advisors.}
+
+
+
+
+\keywords{volume of fluid method, unstructured mesh, geometrical advection, adaptive mesh refinement, OpenFOAM }
+
+\begin{abstract}
+A new parallelized unsplit geometrical Volume of Fluid (VoF) algorithm with support for arbitrary unstructured meshes and dynamic local Adaptive Mesh Refinement (AMR), as well as for two and three dimensional computation is developed. The geometrical VoF algorithm supports arbitrary unstructured meshes in order to enable computations involving flow domains of arbitrary geometrical complexity. The implementation of the method is done within the framework of the OpenFOAM library for Computational Continuum Mechanics (CCM) using the C++ programming language with modern policy based design for high program code modularity. The development of the geometrical VoF algorithm significantly extends the method base of the OpenFOAM library by geometrical volumetric flux computation for two-phase flow simulations.\\[0.5em]
+%
+For the volume fraction advection, a novel unsplit geometrical algorithm is developed, which inherently sustains volume conservation utilizing unique Lagrangian discrete trajectories located in the mesh points. This practice completely eliminates the possibility of an overlap between the flux polyhedra and hence significantly increases volume conservation. A new efficient (quadratic convergent) and accurate iterative flux correction algorithm is developed, which avoids topological changes of the flux polyhedra. %
+Our geometrical VoF algorithm is dimension agnostic, providing automatic support for both 2D and 3D computations, following the established practice in OpenFOAM. %
+The geometrical algorithm used for the volume fraction transport has been extended to support dynamic local AMR available in OpenFOAM. Furthermore, the existing dynamic mesh capability of OpenFOAM has been modified to support the geometrical mapping algorithm executed as a part of the dynamic local AMR cycle. The method implementation is fully parallelized using the domain decomposition approach.\\[0.5em]
+%
+The majority of the standard established test cases for verification and validation of VoF algorithms has been thoroughly tested with varying Courant numbers. Our results for the first time show a VoF algorithm on unstructured meshes to be robust, mass conservative and boundedness-preserving for complex time-varying velocity fields. The obtained volume of symmetric difference interface reconstruction errors are the lowest reported so far in the literature for unstructured meshes.
+\end{abstract}
+
+\maketitle
+
+
+\section{Introduction}
+\label{section:introduction}
+\input{sections/Introduction}
+
+\section{Geometrical evolution of the volume fraction field}
+\label{section:geometrical-algorithm}
+\input{sections/Geometrical-algorithm}
+
+\section{Geometrical mapping of the volume fraction field for local adaptive mesh refinement}
+\label{section:geometrical-mapping}
+\input{sections/Geometrical-mapping}
+
+\section{Results}
+\label{section:results}
+\input{sections/Results}
+
+\section{Summary \& Conclusions}
+\input{sections/Conclusions}
+
+\bibliographystyle{elsarticle-harv}
+\bibliography{bibliography}
+
+
+\end{document}
+
+%-----------------------------------------------------------------------
+% End of article.tex
+%-----------------------------------------------------------------------

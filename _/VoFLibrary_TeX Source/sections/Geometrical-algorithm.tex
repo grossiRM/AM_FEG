@@ -1,0 +1,698 @@
+\label{section:geometry} The advection equation for the volume fraction field
+of a phase $\alpha$ for an incompressible flow is written in the following
+form:
+%
+\begin{equation}
+  \partial_t{\alpha} + \nabla \cdot {(\U \alpha)} = 0. 
+  \label{equation:alpha-advection}
+\end{equation}
+%
+Applying the discretization practice of the unstructured FVM, with the first
+order Euler explicit time discretization on Equation
+\ref{equation:alpha-advection}, results with the following algebraic equation: 
+%
+\begin{equation}
+  \alpha_{c}^n = \alpha_{c}^o - \frac{\Delta t}{V_c} 
+  \sum_f  \alpha_{f} \vec{U}_f \cdot \vec{S}_f, 
+  \label{equation:alpha-discrete}
+\end{equation}
+%
+where $f$ denotes the face of a computational cell (cp. Fig.\ 
+\ref{fig:polyhedralCell-FVM}) and, correspondingly, $\vec{U}_f$ and 
+$\vec{S}_f$ are the face-centered velocity and face area normal 
+vectors shown in Figure \ref{fig:polyhedralCell-FVM}. 
+
+\begin{figure}[h]
+	\centering
+    \def\svgwidth{0.4\columnwidth}
+       {\footnotesize
+        \input{figures/polyhedralCell-FVM.pdf-tex}
+       }
+	\caption{Polyhedral cell}
+	\label{fig:polyhedralCell-FVM}
+\end{figure}
+
+The unstructured FVM utilises a computational domain decomposed into
+non-overlapping convex polyhedra (Figure \ref{fig:polyhedralCell-FVM}) which are the 
+building elements of the unstructured mesh. However, the implementation of the mesh 
+is done in an efficient way, when it comes to addressing the information needed by 
+numerical algorithms. More precisely, the mesh points are defined only once as a 
+set of position vectors, and are indirectly addressed by the unstructured FVM 
+algorithms. The indirect addressing leads to the definitions of faces and cells 
+as sets of indirect indices: the face is thus an ordered set of indices which 
+relate (map) to the list of mesh points, and the mesh cell is a set of indices 
+which relate to the list of mesh faces. 
+
+The ordering of the face indices determines the orientation of the face area
+normal vector $\vec{S}_f$, shown in Figure \ref{fig:polyhedralCell-FVM}. For
+the polyhedron in Figure \ref{fig:polyhedralCell-FVM}, the cell index in the
+list of mesh cells is lower than the cell index of its neighbour accross the
+face $f$. This makes the polyhedron the \emph{owner} of the face $f$, and makes
+the ordering of the indices of the face $f$ such that the face area normal vector
+$\vec{S}_f$ points outwards from the owner polyhedron, and into the neighbor polyhedron.
+Such ordering allows for efficient (unique) computation of the volumetric
+fluxes used by unstructured FVM. 
+
+An algebraic approach to solving Equation \ref{equation:alpha-discrete}
+utilizes bounded higher-order interface capturing (compressive) advection 
+schemes on unstructured meshes to determine the face-centered volume fraction 
+value $\alpha_f$. This practice often results in an artificial smearing of 
+the volume fraction field as well as artificial deformation of the interface. 
+
+The geometrical VoF algorithm solves Equation \ref{equation:alpha-discrete} by
+computing the fluxed phase volume: 
+%
+\begin{equation}
+    V_{f,\alpha} = \alpha_{f} \| \U_f \cdot \vec{S} \| \Delta t = \alpha_f \| F_f \| \Delta t
+    \label{equation:vol-phase-flux}
+\end{equation}
+%
+using geometrical operations, where $F_f$ is the volumetric flux across the face
+$f$ with an outward pointing surface area normal vector $\vec{S}$ 
+($\vec{S}_f$ for a computational cell formally owning the face $f$ -- cf.\ Figure 
+\ref{fig:polyhedralCell-FVM}), which satisfies the discrete divergence free condition: 
+%
+\begin{equation}
+    \sum_f F_f = 0.
+    \label{eq:discretedivergence}
+\end{equation}
+%
+Without the indirect addressing of the unstructured mesh, \eqref{eq:discretedivergence} 
+would be computed on a per-cell basis, repeating the flux calculation twice per cell 
+face. To avoid this, the flux is computed using the oriented face area normal vector 
+$\vec{S}_f$ and the owner-neighbor addressing of the unstructured mesh: 
+%
+\begin{equation}
+   \sum_f \alpha_f \vec{U_f}\cdot\vec{S} = \sum_{\text{owner}} \alpha_f \vec{U_f}\cdot\vec{S}_f 
+     - \sum_{\text{neighbor}} \alpha_f \vec{U_f}\cdot\vec{S}_f, 
+   \label{equation:own-nei}
+\end{equation}
+%
+thus computing the same flux once per cell and adding the flux contribution to
+the owner cell (outward directed $\vec{S}_f$) and deducting the flux
+contribution from the neighbor cell (inward directed $\vec{S}_f$). 
+
+Because of the geometrical multidimensionality of the directionally
+unsplit advection algorithm, the artificial deformation of the interface which
+is transported in the \emph{skew direction}\footnote{Skew direction in the mesh
+is the direction of the point or edge neighbor cells.} is significantly
+reduced, compared to fluxed-based methods based on algebraic differencing schemes. 
+Such geometrical way of computing the fluxed phase volume also ensures the 
+interface geometry to remain located within a single layer of cells throughout 
+the simulation which is consistent with the discrete counter-part of the underlying 
+sharp interface model. 
+
+The geometrical VoF method relies on geometrical information of the interface. 
+In our work, we have used a standard approach for the geometrical VoF
+algorithm: a planar geometry of the interface is placed within an
+\emph{interface cell} and the geometrical evolution of the volume fraction
+field is performed by two subsequent steps, namely the \emph{interface
+reconstruction} and the \emph{volume fraction advection} step. This algorithm
+is commonly known as Piecewise Linear Interface Calculation (PLIC) algorithm
+\citep{RiderReconstructing1998}.
+
+In the remainder we provide a detailed explanation of the supporting
+geometrical operations and both geometrical steps of our geometrical VoF
+method. 
+
+\subsection{Basic geometrical operations}
+
+Two geometrical operations are the basis for both the reconstruction and the
+advection step: the intersection between a plane and a polyhedron, and the
+intersection between two polyhedrons. These operations belong to the field of
+\emph{Computational Geometry} \citep{SchneiderGTC, DeBerg2008CG} and are
+usually sources of difficulties when it comes to calculations that support
+geometrical advection of the volume fraction in three dimensions. The reason
+for this lies in the fact that the polyhedrons involved in the intersection
+operations become non-convex due to the local complexity of the discrete
+velocity field. When the full Lagragian discrete flow map is used to compute
+the flux polyhedrons, complex flow fields may introduce non planarity of the
+swept faces. As reported by \citet{AhnShashkov2009}, in case of a full
+Lagrangian backtracking of the whole mesh, and subsequent re-mapping onto the
+Eulerian static mesh, the faces of the swept cells may be non-planar, and the
+resulting polyhedrons non-convex. If this occurs, a simplification of the swept
+mesh is performed that enforces geometrical operations on convex polyhedrons
+for the sake of simplicity and robustness of the overall algorithm.
+
+Intersection between a plane and a convex polyhedron is calculated using the
+\emph{polyhedron clipping and capping algorithm}, using a slightly modified
+version of the algorithm described by \citet{AhnShashkovGeometricAlg2008}. As 
+the method's name suggests, each face of the polyhedron is visited and 
+\emph{clipped} by a plane, marking the new vertices that will at the end be 
+added as the polyhedron \emph{cap} face. Once all the faces are clipped, the 
+capping algorithm will append the final cap face making sure there are no 
+repeated points. The polyhedron faces are defined to be oriented counter 
+clockwise, when viewed from outside of the polyhedron. Special cases may 
+appear during the geometrical operation, which may result in an intersection 
+being represented as: void, point, edge, face or the complete polyhedron. 
+All these cases are internally and automatically dealt with within the 
+clipping part of the algorithm implementation.
+
+\begin{figure}
+    \centering
+    \def\svgwidth{0.5\columnwidth}
+       {\footnotesize
+        \input{figures/clip-cap-black-white-scaled.pdf-tex}
+       }
+    \caption{Cutting (clippig and capping) of a polyhedral cell}
+    \label{fig:cap}
+\end{figure}
+
+The final cap face of the polyhedron is shown in Figure \ref{fig:cap}. The
+order of the cap vertices $p_{cp}$ could be computed using the connectivity of
+the clipped polyhedron: cap vertices belong to edges that have only a single
+face attached to them after the clipping part of the algorithm is finished. In
+Figure \ref{fig:cap}, $cp$ marks the cap point and $p_{c}$ is the center
+point of the cap. However, we have sorted the points based on the angle the
+vertex makes with respect to the cap center axis, given by the first cap point
+candidate. Since we are dealing with polyhedra that have small number of faces
+(finite volume cells usually have a small number of faces), an angle based
+insertion sort is less complicated to implement and is efficient when compared
+to constructing the face connectivity information to locate cap edges of the
+polyhedron using a graph representation of the polyhedron. In order to find the
+cap edges using edge-face connectivity, an edge based graph representation of
+the polyhedron would be necessary. Once the clipping and capping of the
+polyhedron is performed, the intersection between the polyhedron and a plane is
+complete. 
+
+The intersection between two convex polyhedrons can be built by applying the
+polyhedron clipping and capping algorithm for each face of a polyhedron. The
+same algorithm is used for calculating the intersection between a plane and a
+cell, additionally ensuring the face normal is directed outwards from the
+polyhedron created from the mesh cell in OpenFOAM. 
+
+\subsection{Interface reconstruction}
+
+We have chosen a first order accurate reconstruction algorithm similar to the
+one of \citet{ParkerYoungsGradient} in which the gradient of the volume
+fraction field determines the orientation of the interface plane with a
+difference in the accurate and parallelized method of gradient calculation on
+arbitrary unstructured meshes. This algorithm is first order convergent
+regarding the geometrical reconstruction error, i.e. it cannot reconstruct
+planar interfaces exactly. The absolute accuracy in determining the interface
+orientation comes from the connectivity provided by the cell stencil on which
+the volume fraction gradient is computed.% \footnote{A good example of an
+accurate gradient calculation method on a structured mesh is the Mixed
+Youngs-Centered (MYC) gradient calculation method, developed by
+\citet{Aulisa2007}. Using a wider stencil to increase the accuracy in
+computing the interface normal introduces numerical smoothing of the interface
+curvature, as reported by \citet{KotheUnstructured1996}. This is a common issue
+of the  geometrical VoF algorithm, however, since the reconstruction error
+reduces with the increase of mesh density, the application of local dynamic AMR
+significantly reduces both the reconstruction errors and the need for a
+reconstruction algorithm of higher order. Additionally, the overall
+computational overhead of the solution algorithm is significantly reduced by
+reducing the number of cells compared to a static uniformly refined mesh. 
+
+The overall reconstruction algorithm is described by Algorithm
+\ref{alg:reconstruction}, defined by two key steps: gradient
+calculation and interface positioning. 
+
+\begin{algorithm}[H]
+    \centering
+    \caption{Reconstruction algorithm}
+    \label{alg:reconstruction}
+
+    {\small
+      \begin{algorithmic}
+       \State compute the gradient of the volume fraction
+       \For{cells}
+         \If{cell is an interface cell}
+             \State initialize the iterative positioning
+             \While{interface not positioned}
+                 \State secant method: update position
+                 \If{secant diverging (two arguments outside search interval)}
+                    \While{interface not positioned}
+                     \State bisection method: update position 
+                    \EndWhile
+                 \EndIf
+                 \State update secant divergence test (store last argument)
+             \EndWhile
+         \EndIf
+        \EndFor
+      \end{algorithmic}
+    }
+\end{algorithm}
+
+
+\subsubsection{Gradient calculation}
+
+Calculating the volume fraction gradient to second order of convergence on an
+unstructured mesh has been investigated mostly for single phase simulations
+(e.g. \citet{lsq-revisiting}) and for volume rendering algorithms in the field
+of Computer Graphics (e.g. \citet{IEEE-gradComparison}). When it comes to two-phase 
+flows on unstructured mesh, an overview of the possible gradient schemes
+is provided by \citet{KotheUnstructured1996}.
+\citet{AhnShashkovMultiMaterialRec2007} have used a least squares approach for
+gradient calculation on an unstructured mesh for comparing the results with
+their MoF reconstruction. 
+
+A steep change of the volume fraction field across the fluid interface within a
+single cell layer introduces difficulties in obtaining an accurate gradient
+calculation on unstructured meshes. Computation of the gradient on unstructured
+meshes based on the approximation stemming from the Gauss divergence theorem is
+of second order convergence, however, this gradient scheme does not take into
+account point cell neighbors. Therefore, the absolute accuracy of such schemes
+deteriorates on fields with large jumps in values, across a narrow band of
+cells. In the case of our geometrical VoF algorithm, the reduced absolute
+accuracy of the standard Gauss gradient is observed in the form of
+instabilities of the reconstructed interface geometry. The instabilities
+persist regardless of the choice of the interpolation scheme, since the
+interpolation stencil remains unchanged. This is especially true for
+tetrahedral and hexahedral unstructured meshes. On polyhedral meshes, each cell
+is connected to all neighbor cells by sharing a common face. The face-based
+gradient calculation on polyhedral meshes is thus more accurate.
+
+We have used a \emph{Node Averaged Gauss} (NAG) gradient scheme to compute the
+orientation of the interface normal. The NAG gradient relies on the
+connectivity which is already provided by the unstructured mesh. However, the
+increase in absolute accuracy comes from successive interpolation of cell
+centered values to mesh points, and averaging of the point values at face
+centers. The value of the field is interpolated from cell centers to cell
+points using an Inverse Distance Weighting (IDW) interpolation:
+%
+\begin{equation}
+    \phi_p = \sum_{pc} w_{pc} \phi_{pc}
+    \label{eq:idwpointphi}
+\end{equation}
+%
+where $pc$ marks cells $c$ surrounding the mesh point $p$ (point-cells), 
+$\phi_p$ is the field value which maps to mesh points, and $w_{pc}$ is the
+inverse distance weight:
+%
+\begin{equation}
+    w_{pc} = \frac{\frac{1}{||\x_p - \x_{pc}||}}{\sum_{\widetilde{pc}} \frac{1}{||\x_p - \x_{pc}||}},
+\end{equation}
+%
+between the center of the point-cell $pc$ and the mesh point $p$. 
+
+From the mesh point values, the face-centered values are calculated using
+\emph{area weighted averaging}. As a first step, the center of the face is
+calculated as the algebraic average of the face points, and the initial
+face-centered value $\phi_{f}'$ is computed by algebraically averaging the
+point values: 
+%
+\begin{equation} \phi_{f}' = \frac{1}{N_{fp}} \sum_{fp} \phi_{fp},
+\end{equation}
+%
+where $\phi_{f}$ is the \emph{initial face centered value}, $fp$ is a set of
+mesh points that comprise a face $f$ (face-points) and ${N_{fp}}$ is the number
+of face-points. In a second step, the face is decomposed into triangles using
+the face center and points of each face edge ($fp$, $fp+1$). Triangle area is
+computed using the vector product its edge vectors, and is then used as a
+weighting factor: the final face centered value is then computed as an area
+weighted average of the averaged triangle values: 
+%
+\begin{equation} \phi_f = \sum_t w_t \phi_t, \end{equation}
+%
+where $w_t$ is the area weight of the triangle:
+%
+\begin{equation} w_t = \frac{A_t}{\sum_t A_t}, \end{equation}
+%
+and $\phi_t$ is the average value of the triangle: 
+%
+\begin{equation} \phi_t = \frac{1}{3} (\phi_f' + \phi_{fp} + \phi_{fp+1}).
+\end{equation}
+%
+As a final step in computing the cell centered gradient, the face centered
+field is used to calculate the gradient using the Gauss divergence theorem in
+the gradient form: 
+%
+\begin{equation} 
+\grad{\phi}_c \approx \frac{1}{V_c} \sum_f \phi_f \vec{S}_f. 
+\end{equation}
+%
+This algorithm accounts for the volume fraction values stored in \emph{skew
+cells} (cells which are connected with the cell in question through a point or
+an edge) with their information to be transferred to the interface cell
+indirectly, without the explicit computation of the additional connectivity
+required by the wide cell stencil on the unstructured mesh. 
+
+The area weighted averaging takes into account the contribution to the final
+face-centered value by taking into account the shape of the face. An
+alternative calculation of the NAG gradient could involve IDW interpolation
+applied to compute the face centered values instead of the area averaging
+procedure. This alternative has not been tested since the above averaging 
+approach has been used to produce very accurate as well as convergent 
+interface reconstruction results.
+
+The \emph{generalized least squares gradient} (generalized LSQ) that supports
+arbitrary unstructured meshes as described by \citet{lsq-revisiting} has also
+been implemented. For the generalized LSQ gradient, the connectivity stencil
+storing the access information to cell point neighbors needs to be
+constructed. For a linear least squares gradient, the field is approximated
+using the linear part of the Taylor series, i.e. 
+%
+\begin{equation}
+    \phi(\x_{k}) \approx  \phi(\x_{c}) + \grad{\phi}(\x_{c}) (\x_{k} - \x_{c}),
+\end{equation}
+%
+where $c$ and $k$ are the indirect access indices of two cell centers on an
+unstructured mesh. Since a wider cell stencil on a three-dimensional mesh
+implies a larger number of cell centers than three, a gradient of a scalar
+field $\phi_c$ is computed by minimizing the weighted gradient error for each cell $c$:
+%
+\begin{equation}
+    E_c = \sum_k w_{ck}^2 E_{ck}^2,   
+    \label{eqn:generalizedLSQminimize}
+\end{equation}
+%
+where the error is defined as (\citep[]{lsq-revisiting})
+%
+\begin{equation}
+    E_{ck} = -[\phi(\x_{c}) - \phi(\x_{k})] + \grad{\phi}(\x_c) (\x_c - \x_k),
+\end{equation}
+%
+and the $w_{ck}$ is the inversed distance weight. The minimization of the error
+$E_c$ for a scalar field results with a solution of a  algebraic equation
+system for each cell of dimensions $3\times3$, with the dimensions defined by
+the three components of the gradient vector. 
+
+\subsubsection{Interface positioning}
+
+An iterative approach to interface positioning
+(\citet{RiderReconstructing1998}) using the super-linear convergent Brent's
+algorithm (\citet{BrentAlgorithm}) or an analytical approach
+(\citet{ScardovelliAnalytical2000}) can be chosen for interface positioning.
+\citet{AhnShashkovMultiMaterialRec2007} have shown that the interface
+positioning may be accomplished in a simpler way, using a combination of the
+secant and bisection iteration methods. The bisection method has guaranteed
+linear convergence, and the secant method has super-linear convergence, but may
+diverge. 
+
+Figure \ref{fig:positioning} shows the details of our interface positioning
+algorithm. A characteristic fill level function is shown which corresponds to
+the increase of the volume fraction value as the interface is moved along the
+orientation axis given by the gradient of the volume fraction. Because of the
+monotonicity of the fill level function we know that the fill level function
+has a zero value within the search interval. However, divergence of the secant
+method may happen when the iterative procedure reaches the border of the
+interval since the fill level function has a \emph{vanishing slope} at the
+interval borders ($-\alpha$ or $1 - \alpha$), so the iterative procedure
+switches to the bisection method in this case. 
+
+\begin{figure}
+    \centering
+    %\def\svgwidth{\columnwidth}
+    \def\svgwidth{0.5\columnwidth}
+    {\footnotesize
+        \input{figures/interface-positioning-black-white-scaled.pdf-tex}
+    }
+    \caption{Geometric Reconstruction: Interface positioning}
+    \label{fig:positioning}
+\end{figure}
+
+\subsection{Volume fraction advection}
+
+Advection of the volume fraction is based on a geometrical computation of the
+\emph{fluxed phase volume} $V_{\alpha}$ on cell faces. This is achieved by
+\emph{sweeping} (backtracking) the face along the streamline vectors given by
+the interpolated velocity field at the mesh points: 
+%
+\begin{equation} 
+\vec{x}'_{fp} = \vec{x}_{fp} - \vec{U}_{fp}\Delta t,
+\label{eq:sweep} 
+\end{equation}
+%
+where $\vec{x}_{fp}$ is the face-point (a mesh point addressed via the cell
+face index list).  The swept face, together with the original face, construct
+together a so-called \emph{congruent} polyhedron, which may have non-planar faces and
+may even be non-convex. The advantage of using unique point velocities lies in
+the fact that the \emph{swept polyhedra do not overlap at all}, as shown in
+Figure \ref{fig:sweptPolyhedron:sweeping}. However, it has been reported in the
+literature \citep{LiovicCVTNA2006} that using the full discrete flow map may
+result in highly distorted polyhedra when complex flow fields are present,
+introducing errors in mass conservation and numerical boundedness of the volume
+fraction field. To the contrary, as we show later in the results part, below the 
+expected Courant number limit ($Co<1$) our development of the numerical flow 
+solution remains mass conservative and bounded within 
+$[0,1]$ using point velocities, even for complex flow fields and both on meshes 
+with densities used for standard test cases and on dynamically refined meshes 
+using local dynamic AMR. %
+We have observed an increased accuracy and robustness of the advection algorithm 
+because of the tetrahedral decomposition applied to the computation of the volume 
+of the swept polyhedron. %
+Analytical expressions for computing the volume of the flux polyhedron rely
+exclusively on the convexity of the polyhedron. Using unique point velocities
+to sweep the face does introduce some non-planarity of the faces of the swept
+as shown for an example shaded non-planar face in Figure
+\ref{fig:sweptPolyhedron:sweeping}. However, the distortion of the polyhedron
+will always be small enough, such that the tetrahedral decomposition removes the
+face non-planarity and delivers accurate results for the volume of the swept
+polyhedron $S_f$ with non-planar faces, which allows for an efficient iterative
+flux correction procedure that completely avoids topological operations on the
+swept polyhedron. 
+
+Figure \ref{fig:sweptPolyhedron:sweeping} shows the construction of the swept
+polyhedron: face point velocities $\U_{fp}$ are interpolated using 
+\eqref{eq:idwpointphi} and multiplied by $-\Delta t$ to track the
+face back (Equation \ref{eq:sweep}). Tetrahedral decomposition is then used to
+compute the volume of the volumetric flux per each face $f$ and the polyhedron
+face is swept along the stream vectors iteratively (Figure
+\ref{fig:sweptPolyhedron:correcting}) until the volume of the swept polyhedron
+becomes equal to the volume given by the volumetric flux $F_f$: 
+%
+\begin{equation}
+    V_{f,F} = \| F_f \| \Delta t,
+    \label{eq:VF}
+\end{equation}
+converging into the final \emph{flux polyhedron} used to compute the volume of
+the fluxed phase accross face $f$.
+%
+\begin{figure}
+   \begin{subfigure}[b]{0.45\columnwidth}
+       \centering
+       \def\svgwidth{\columnwidth}
+       {\footnotesize
+            \input{figures/swept-polyhedron-black-white-scaled.pdf-tex}
+       }
+       \caption{Sweeping faces with point velocities produces non-overlapping swept polyhedra} 
+       \label{fig:sweptPolyhedron:sweeping}
+   \end{subfigure}
+   \begin{subfigure}[b]{0.45\columnwidth}
+       \centering
+       \def\svgwidth{\columnwidth}
+       {\footnotesize
+            \input{figures/swept-polyhedron-black-white-scaled-iterative.pdf-tex}
+       }
+       \caption{Iterative correction of the swept polyhedron to match the volume given by the volumetric flux}
+       \label{fig:sweptPolyhedron:correcting}
+   \end{subfigure}
+\end{figure}
+%
+The velocity field obtained at the face points using inversed distance
+interpolation is not divergence free in the discrete sense, thus a divergence 
+correction becomes necessary. For this, we define the volume of the face-swept 
+flux polyhedron:
+%
+\begin{equation}
+    V_{f,S} = \sum_{f,T} V_{f,T}, 
+\end{equation}
+%
+where $V_{f,T}$ is the volume of a tetrahedron produced as a result of
+tetrahedral decomposition of the swept-face polyhedron $S_f$ generated for each
+face $f$ of the mesh (Figure \ref{fig:sweptPolyhedron:sweeping}).  Using the volume
+of the decomposed face-swept flux polyhedron, the discrete swept volumetric
+flux can be computed as
+\begin{equation}
+    F_{f,S} = \frac{V_{f,S}}{\Delta t}.
+\end{equation}
+As already noted, this volumetric flux is not expexted to satisfy the discrete 
+divergence free condition \eqref{eq:discretedivergence} necessary for the mass 
+(volume) conservation of a pseudo-staggered solution algorithm, i.e.\
+\begin{equation}
+    \sum_f {F_{f,S}} \sgn(F_f) \ne 0,
+\end{equation}
+where $\sgn(F_f)$ is the sign function of the volumetric flux: 
+\begin{equation} 
+   \sgn(F_f) = \begin{cases} 
+                    +1 , F_f > 0 \\
+                    -1 , F_f < 0  \cdot  
+              \end{cases},
+\end{equation}
+%
+%Since the velocity field in the face points is not divergence free in a discrete sense
+%
+which needs to be computed once per face since the volume of the swept-face polyhedron 
+will always be positive. Subsequently a \emph{divergence correction} of the swept 
+polyhedrons is to be performed to ensure mass conservation. %
+This practice has proven sufficient for the computation of the fluxed phase volumes, 
+since the point velocity field is then only needed to provide the direction for face 
+sweeping (streamline direction).%
+
+In literature, there are three approaches commonly used for the divergence
+correction: a scalar coefficient correction \citep{LiovicCVTNA2006}, analytical
+correction \citep{HernandezLopezPart1Advection2008} and a parametric correction
+\citep{MencingerZunAdaptive2011}. We have developed a novel efficient and 
+iterative approach: %
+the \emph{swept polyhedron} computed by sweeping the face is corrected iteratively 
+until its volume is equal to the volume given by the fluxed volume defined by the 
+scalar volumetric flux (Equation \ref{eq:VF}).
+The super-linear convergent secant method is applied to \emph{move the end points
+of the flux polyhedron} until its volume corresponds to the volumetric flux volume. 
+This algorithm does not involve topological changes of the flux polyhedron and the 
+method converges in a very small number of steps (3-5 on average, evaluated for 
+the shear flow test case) to machine tolerance since the initial volume of the flux 
+polyhedron is in magnitude near to the magnitude of the volumetric flux, and the 
+target function is a fill level function with a monotonic increase. Avoiding 
+topological operations in the correction of the flux polyhedron increases the speed 
+of the correction significantly. We have tested the algorithm for different shapes 
+of swept faces, applying random perturbations in the orientation of swept edges 
+and have found the correction algorithm to be robust and accurate. Even with 
+random perturbations of swept point coordinates in magnitudes up to 20\% of the 
+characteristic length of the face (Figure \ref{fig:sweptPolyhedron:sweeping}), 
+the calculation of the volume magnitude remains correct to machine tolerance, 
+allowing for the iterative correction algorithm to converge very quickly. 
+
+%The reason behind such stability of the algorithm when dealing with non-planar
+%faces lies in the way the polyhedral cells are handled: cells are considered
+%to be \emph{logical} polyhedrons.  Logical polyhedrons do not impose planarity
+%of the faces, and the unstructured mesh built from logical polyhedrons does
+%not directly require the cells to be convex. The computation of the flux
+%polyhedron volume is thus based on the tetrahedral decomposition, which works
+%very well even for moderately non convex polyhedrons with non-planar faces.
+
+\begin{figure}
+   %\begin{subfigure}[b]{0.5\columnwidth}
+       \centering
+       \def\svgwidth{\columnwidth}
+       {\footnotesize
+           \input{figures/polyhedral-flux-intersection-black-white-scaled.pdf-tex}
+       }
+       %\caption{Intersecting the corrected flux (swept) polyhedron and PLIC plane} 
+       %\label{fig:volPhaseFlux:intersection}
+   %\end{subfigure}
+   %\begin{subfigure}[b]{0.5\columnwidth}
+       %\centering
+       %\def\svgwidth{\columnwidth}
+       %{\footnotesize
+           %\input{figures/polyhedral-flux-final-black-white-scaled.pdf-tex}
+       %}
+       %\caption{Result of intersection: fluxed phase volume contribution}
+       %\label{fig:volPhaseFlux:contribution}
+   %\end{subfigure}
+
+    \caption{Computing the volume of the fluxed phase using intersections.} 
+    \label{fig:volPhaseFlux}
+\end{figure}
+
+After the swept polyhedrons have been corrected, the contributions of the volumetric
+phase flux coming from the surrounding cells needs to be computed. Obtaining a
+flux contribution using geometrical intersections is shown schematically in
+Figure \ref{fig:volPhaseFlux} for a single face. The corrected swept 
+polyhedron $S_f$ (dotted lines) is initially clipped with each cell of the 
+advection stencil:
+%
+\begin{equation}
+   S'_f = S_f \cap_s C_s,  
+\end{equation}
+%
+where $C_s$ is the cell of the chosen flux stencil $s$. The flux stencil $s$
+needs to incorporate point and edge face neighbors, otherwise those
+contributions to the total fluxed phase volume will be missing and interface
+motion will be artificially distorted in those directions, as is the case
+for flux-based methods naively utilizing algebraic advection schemes on 
+unstructured hexahedral meshes. In case the candidate cell is an interface 
+cell, a subsequent intersection is performed with the positive halfspace 
+$I^+$ defined by the PLIC plane (grey colored polygon):
+%
+\begin{equation}
+    S''_f = S'_f \cap I^+.
+\end{equation}
+%
+This is the final face contribution to the total fluxed phase volume as illustrated
+in Figure \ref{fig:volPhaseFlux}. The total value of the volumetric flux is
+then computed as the sum of the fluxed phase volume contributions calculated for
+all cells of the face flux stencil. The calculation of the total fluxed phase
+volume across a face is performed for an \emph{outflow cell} only using 
+\eqref{equation:vol-phase-flux}, resulting in a final decrease of the volume 
+fraction for this cell, and the corresponding increase for the \emph{inflow cell}. 
+
+We use a \emph{narrow band} of interface cells for the advection of the volume
+fraction field. %Using non divergence-free mesh point velocity field throughout
+%the domain would introduce errors in mass conservation. Moreover, 
+Since geometrical intersections are needed for the geometrical reconstruction and
+advection steps, localizing the computation to a narrow band of cells strongly
+increases the efficiency of the overall algorithm. In case of a complex
+velocity field and a naive advection operating on the whole domain,
+\emph{wisps} appear in the bulk of both phases. Hence, locating and removing
+wisps is greatly simplified for a \emph{narrow band} advection since their
+initial location is always in the bulk cells that are direct neighbors to
+interface cells. To remove the wisps, a redistribution algorithm of
+\citet{HarvieFletcherStream2000} has been implemented, with applied
+modifications that are necessary for fast computation of large stencils on
+arbitrary unstructured meshes. Both void and phase wisps are redistributed
+conservatively to the surrounding interface cells, under the constraint that
+the removal of mass or its addition is not allowed to cause further creation of
+over/undershoots or wisps. 
+
+The narrow cell band is constructed using neighborhood cell information and the
+volume fraction field, i.e. the algorithmic task for the advection is: advect
+only in interface cells and their first \emph{point neighbors}. To avoid
+computing additional point-cell neighbor connectivity which would then be
+updated during the evolution of the interface, we have re-used the gradient of
+the volume fraction field as an indicator for the bulk cells that are not
+involved in the advection. This is schematically shown in Figure
+\ref{fig:parallel:gradZeroCondition}.  A bulk cell is  characterized as a cell
+for which the gradient of the volume fraction is zero.
+
+Since only the outflow from cells is calculated, the change of the volume
+fraction is not applied for cells that lie in the bulk of the phases.  The
+fluxed phase volume is computed also for cell faces when the outflow is
+present for the bulk cell. However, in this case the update of the volume
+fraction field is not executed for the bulk cell. The re-use of the gradient
+field as a criterion for constructing the narrow band of cells involved in the
+advection significantly increases the efficiency of the method, since the
+gradient is already computed as a requirement of the reconstruction algorithm.
+
+\subsection{Parallel implementation}
+
+The parallel implementation of the reconstruction algorithm is simplified when
+the NAG gradient is utilized for the computation of the interface normal, since
+no additional communication structures need to be prepared and communicated
+over the process boundary. In the case of the generalized LSQ algorithm,
+computing the additional connectivity involves multiple issues: parallel
+communication involving more complex stencil structures, update of the stencil
+structures when topological changes are applied to the mesh (AMR), and caching
+of the additional connectivity to increase algorithm efficiency. Since the NAG
+gradient has provided sufficiently accurate results, we have left the parallel
+implementation of the generalized LSQ gradient as future work if proved to be
+necessary.
+
+\begin{figure}
+   \begin{subfigure}[b]{0.45\columnwidth}
+       \centering
+       \def\svgwidth{0.6\columnwidth}
+       {\footnotesize
+           \input{figures/advectionGradientSimpleFront.pdf-tex}
+       }
+       \caption{Computing a narrow band of cells} 
+       \label{fig:parallel:gradZeroCondition}
+   \end{subfigure}
+   \begin{subfigure}[b]{0.45\columnwidth}
+       \centering
+       \def\svgwidth{0.6\columnwidth}
+       {\footnotesize
+           \input{figures/advectionGradientParallelComm.pdf-tex}
+       }   
+       \caption{Communicating the outflow flux fields}
+       \label{fig:parallel:communication}
+   \end{subfigure}
+
+    \caption{Parallel implementation: computing the fluxed phase volume}    
+    \label{fig:parallel:sphereFine}
+\end{figure}
+
+Using the gradient to determine the bulk cells simplifies the parallel
+implementation of the advection algorithm as shown schematically on Figure
+\ref{fig:parallel:gradZeroCondition}. Additional connectivity required to
+identify the cell candidates would otherwise be communicated across process
+boundaries, as well as the geometrical information of the mesh cells. However,
+when the volume fraction gradient is used to determine the narrow band of
+cells, there is no need for additional connectivity. Since the outflow field is
+computed for each separate domain, the boundary outflow fluxes need to be
+exchanged (simultaneously) across process boundaries. The outflow from one
+domain represents the inflow field for the other domain, as shown in Figure
+\ref{fig:parallel:communication}. In order to avoid \emph{deadlocking}
+resulting from simultaneous communication, the parallel code utilizes \emph{non
+blocking} communications \citep{OpenMPI}. 

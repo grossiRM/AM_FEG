@@ -1,0 +1,9 @@
+Ois an open source toolbox that is capable of considering both powder packing and molten pool modeling based on programming language C++. The physical processes of PBF-L of Ti-6Al-4V were simulated considering the surface tension, Marangoni flow, recoil pressure, drag force due to solid/liquid transition [150,186,194]. Powder particles were packed on the substrate before laser scanning [150,186]. A probability density function with Gaussian fit was used to simulate the size distribution of powder particles. Subsequently, a powder dropping model was used to calculate the random positions and arrangements of the powder particles in the powder bed [194]. An example of the simulated molten pool and powder particles using OpenFOAM is shown in Fig. 2.12(b) [186]. The evolution of the liquid/gas interface of the molten pool was simulated through the coupling of the Navier- Stokes equation, energy conservation, continuity equation and volume-of-fluid equation [150,186,19]
+
+[150]Qiu C, Panwisawas C, Ward M, Basoalto HC, Brooks JW, Attallah MM. On the role of melt flow into the surface structure and porosity development during selective laser melting. Acta Mater 2015;96:72–9.
+
+[186]Wei HL, Cao Y, Liao WH, Liu TT. Mechanisms on inter-track void formation and phase transformation during laser powder bed fusion of Ti-6Al-4V. Addit Manuf 2020;34:101221.
+
+[19]Mukherjee T, Wei HL, De A, DebRoy T. Heat and fluid flow in additive manufacturing - Part II: Powder bed fusion of stainless steel, and titanium, nickel and aluminum base alloys. Comp Mater Sci 2018;150:369–80.
+
+[194]Panwisawas C, Qiu C, Anderson MJ, Sovani Y, Turner RP, Attallah MM, et al. Mesoscale modelling of selective laser melting: thermal fluid dynamics and microstructural evolution. Comp Mater Sci 2017;126:479–90.

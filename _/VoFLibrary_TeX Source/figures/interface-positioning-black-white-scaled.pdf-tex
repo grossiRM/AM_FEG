@@ -1,0 +1,69 @@
+%% Creator: Inkscape inkscape 0.48.2, www.inkscape.org
+%% PDF/EPS/PS + LaTeX output extension by Johan Engelen, 2010
+%% Accompanies image file 'interface-positioning-black-white-scaled.pdf' (pdf, eps, ps)
+%%
+%% To include the image in your LaTeX document, write
+%%   \input{<filename>.pdf_tex}
+%%  instead of
+%%   \includegraphics{<filename>.pdf}
+%% To scale the image, write
+%%   \def\svgwidth{<desired width>}
+%%   \input{<filename>.pdf_tex}
+%%  instead of
+%%   \includegraphics[width=<desired width>]{<filename>.pdf}
+%%
+%% Images with a different path to the parent latex file can
+%% be accessed with the `import' package (which may need to be
+%% installed) using
+%%   \usepackage{import}
+%% in the preamble, and then including the image with
+%%   \import{<path to file>}{<filename>.pdf_tex}
+%% Alternatively, one can specify
+%%   \graphicspath{{<path to file>/}}
+%% 
+%% For more information, please see info/svg-inkscape on CTAN:
+%%   http://tug.ctan.org/tex-archive/info/svg-inkscape
+%%
+\begingroup%
+  \makeatletter%
+  \providecommand\color[2][]{%
+    \errmessage{(Inkscape) Color is used for the text in Inkscape, but the package 'color.sty' is not loaded}%
+    \renewcommand\color[2][]{}%
+  }%
+  \providecommand\transparent[1]{%
+    \errmessage{(Inkscape) Transparency is used (non-zero) for the text in Inkscape, but the package 'transparent.sty' is not loaded}%
+    \renewcommand\transparent[1]{}%
+  }%
+  \providecommand\rotatebox[2]{#2}%
+  \ifx\svgwidth\undefined%
+    \setlength{\unitlength}{273.64609375bp}%
+    \ifx\svgscale\undefined%
+      \relax%
+    \else%
+      \setlength{\unitlength}{\unitlength * \real{\svgscale}}%
+    \fi%
+  \else%
+    \setlength{\unitlength}{\svgwidth}%
+  \fi%
+  \global\let\svgwidth\undefined%
+  \global\let\svgscale\undefined%
+  \makeatother%
+  \begin{picture}(1,1.15341939)%
+    \put(0,0){\includegraphics[width=\unitlength]{interface-positioning-black-white-scaled.pdf}}%
+    \put(0.59015172,0.38847419){\color[rgb]{0,0,0}\makebox(0,0)[lb]{\smash{$C_p$}}}%
+    \put(0.47379843,0.28019616){\color[rgb]{0,0,0}\makebox(0,0)[lb]{\smash{$x_{i-1}$}}}%
+    \put(0.5217352,0.30424201){\color[rgb]{0,0,0}\makebox(0,0)[lb]{\smash{$x_{i+1}$}}}%
+    \put(0.525942,0.35603036){\color[rgb]{0,0,0}\makebox(0,0)[lb]{\smash{$x_{i}$}}}%
+    \put(0.93951186,0.47582273){\color[rgb]{0,0,0}\makebox(0,0)[lb]{\smash{$x$}}}%
+    \put(0.17015473,1.09471286){\color[rgb]{0,0,0}\makebox(0,0)[lb]{\smash{$\alpha_1(x_{i+1}) - \alpha_1$}}}%
+    \put(0.78611888,0.85187153){\color[rgb]{0,0,0}\makebox(0,0)[lb]{\smash{$x$}}}%
+    \put(0.63236171,1.1108576){\color[rgb]{0,0,0}\makebox(0,0)[lb]{\smash{$1-\alpha_1$}}}%
+    \put(0.42567206,0.75108988){\color[rgb]{0,0,0}\makebox(0,0)[lb]{\smash{$O$}}}%
+    \put(0.36403401,0.68021337){\color[rgb]{0,0,0}\makebox(0,0)[lb]{\smash{$x_{i+1}$}}}%
+    \put(0.3173304,0.65714427){\color[rgb]{0,0,0}\makebox(0,0)[lb]{\smash{$x_{i-1}$}}}%
+    \put(0.36925026,0.73178559){\color[rgb]{0,0,0}\makebox(0,0)[lb]{\smash{$x_{i}$}}}%
+    \put(0.02777881,0.54157172){\color[rgb]{0,0,0}\makebox(0,0)[lb]{\smash{$-\alpha_1$}}}%
+    \put(0.7572633,0.9831005){\color[rgb]{0,0,0}\makebox(0,0)[lb]{\smash{$x_{\alpha_1}$}}}%
+    \put(0.39949747,0.81881855){\color[rgb]{0,0,0}\makebox(0,0)[lb]{\smash{$O_{\alpha_1}$}}}%
+  \end{picture}%
+\endgroup%

@@ -1,0 +1,60 @@
+%
+%- motivation for actual reading
+%
+We provide considerable detail on the characteristics and fundamental steps of method 
+development of a novel geometrical unsplit VoF algorithm for arbitrary unstructured 
+meshes. Our algorithm has shown to produce a bounded volume fraction field; moreover, 
+it is mass conservative and robust, even though its advection part is based on 
+a discrete Lagrangian flow map (velocities in mesh points), which has been 
+reported to be unfeasible in literature so far. 
+
+%
+%- descriptive part
+%
+% detailed
+The method's advection algorithm -- besides its use of an unique discrete 
+Lagrangian flow map -- essentially comprises of a novel flux correction 
+algorithm and narrow band computation: a fast iterative flux correction 
+algorithm was implemented as well as an efficient narrow band computation 
+based exclusively on the volume fraction field. This has been accomplished 
+without introducing additional data structures and related algorithms 
+required to update the narrow band as the interface moves. %
+The key feature of the reconstruction algorithm is its accurate Node Averaged Gauss 
+method used for calculating the phase fraction gradient, which results in lowest 
+reconstruction errors reported so far for unstructured meshes.
+
+
+The implementation of the geometrical intersection algorithms used both for 
+reconstruction and advection is completely general, which makes the overall 
+framework applicable to arbitrary cell types. %
+However, the results show the algorithm to be more accurate on
+unstructured hexahedral meshes than on tetrahedral meshes. In order to obtain
+more accurate solutions on a tetrahedral mesh, higher order reconstruction
+and/or advection algorithms will be required, which is to be expected. 
+To increase the overall accuracy on hexahedral meshes, we have
+extended the local dynamic Adaptive Mesh Refinement (AMR) engine in OpenFOAM
+and implemented a geometrical mapping algorithm for the volume fraction field.
+Results obtained using the adaptive geometrical VoF algorithm are promising and
+are showing expected behaviour in absolute error values as well as error
+convergence with a low computational overhead when compared to static mesh 
+cases.  
+
+The implementation of the geometrical library and the client simulation 
+applications was done in a modular way using a policy based design in the C++ 
+programming language, allowing for straightforward future extensions, if proven 
+to be necessary. %
+Our VoF algorithm is fully parallelized using the domain decomposition approach 
+and is developed such that it is fully dimension agnostic following the design 
+of the OpenFOAM library, which means that the transport automatically supports 
+both two and three dimensional computation. The results are based on the majority 
+of the standard established test cases for verification and validation of VoF 
+algorithms and show that the new geometrical VoF algorithm delivers accurate and 
+reliable results on unstructured meshes, even for large Courant numbers and 
+complex velocity fields.
+
+Our further research is directed towards the coupling of the geometrical VoF
+algorithm with the pseudo-staggered flow solution algorithms in OpenFOAM on
+arbitrary unstructured meshes. Another point of interest related to a
+geometrically transported volume fraction field is the balancing of 
+interfacial forces which will enable simulations of surface-tension
+dominated flows in flow domains of arbitrary geometrical complexity. 

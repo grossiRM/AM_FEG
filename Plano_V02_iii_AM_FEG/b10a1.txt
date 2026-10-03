@@ -1,0 +1,24 @@
+03	2	Macro-scale thermal and mechanical modeling
+	2.1 	Heat conduction equation
+	2.1.1 	Mechanical equilibrium equation
+
+07	2.3 	Mesoscale melt pool dynamics
+	2.3.1 	Continuity equation
+	2.4 	Navier–stokes equation
+	2.5 	Marangoni shear stress
+
+09	3	Microscale modeling and microstructure evolution
+	3.1.1  	Phase-field equation
+
+11	4	Coupled thermal–mechanical–metallurgical modeling
+	4.1 	Strategy for multi-physics coupling
+
+13	5 	Model validation and experimental techniques
+	5.1 	Thermal measurement and thermocouples
+	5.2 	XRD and residual stress evaluation
+15	5.3 	EBSD and metallographic validation
+
+
+15	6
+
+Jin 2022 surrogate
